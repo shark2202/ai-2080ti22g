@@ -97,6 +97,35 @@ def validate_datasets(verbose=True):
                 if not (item.get("instruction") or item.get("prompt")):
                     problems.append("%s: 缺少 instruction/prompt" % where)
 
+    # 选择题答案位置分布闸门：防止"闭眼恒答某个字母"就能拿高分
+    # 首版题库曾把28/40 的正确答案放在 B 位，导致恒答 B 得 70 分，失去区分度。
+    # 这里要求各选项出现次数的极差 ≤ 题数的 15%，超出即判为不合格。
+    for cat in ("chinese_knowledge", "english_knowledge", "logic_reasoning"):
+        path = os.path.join(DATASET_DIR, CATEGORY_META[cat]["file"])
+        if not os.path.exists(path):
+            continue
+        items = _load_jsonl(path)
+        if not items:
+            continue
+        dist = {}
+        for item in items:
+            a = str(item.get("answer", "")).upper()
+            dist[a] = dist.get(a, 0) + 1
+        counts = [dist.get(L, 0) for L in ("A", "B", "C", "D")]
+        spread = max(counts) - min(counts)
+        ratio = spread / float(len(items))
+        if ratio > 0.15:
+            problems.append(
+                "%s: 答案位置分布偏斜（%s，极差 %d / %d 题 = %.0f%%），"
+                "恒答单一字母即可得 %.0f%%，测评失去区分度；"
+                "请运行 scripts/balance_answer_positions.py 修复"
+                % (cat, dict(sorted(dist.items())), spread, len(items), ratio * 100,
+                   100.0 * max(counts) / len(items)))
+        elif verbose:
+            report.append("%s: 答案分布 %s（极差 %d，恒答最优字母可得 %.0f%%，已在阈值内）"
+                          % (cat, dict(sorted(dist.items())), spread,
+                             100.0 * max(counts) / len(items)))
+
     # 代码题参考答案必须通过全部单测
     sol_path = os.path.join(DATASET_DIR, "code_generation.solutions.jsonl")
     if os.path.exists(sol_path):

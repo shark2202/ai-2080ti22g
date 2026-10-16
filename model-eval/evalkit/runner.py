@@ -131,6 +131,13 @@ def run_eval(cfg, only=None, limit=None, resume=False, run_id=None,
     else:
         stamp = run_id or datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         run_dir = os.path.join(out_root, "run_" + stamp)
+        # 非 --resume 时必须从干净目录开始：若 --run-id 撞上已有目录，
+        # 上一轮的记录会被当作"已完成"跳过，导致本次报告混入历史数据。
+        if os.path.isdir(run_dir) and os.listdir(run_dir):
+            raise ValueError(
+                "输出目录已存在且非空: %s\n"
+                "非 --resume 运行不会覆盖已有结果，以免混入上一轮数据。\n"
+                "请换一个 --run-id，或使用 --resume 续跑该目录。" % run_dir)
     os.makedirs(run_dir, exist_ok=True)
 
     completed = _load_completed(run_dir)
