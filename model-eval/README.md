@@ -11,11 +11,15 @@
 - **要对外可比的标准分数**：用行业事实标准 **EleutherAI lm-evaluation-harness**，本目录提供一键脚本：
 
 ```bash
-pip install lm_eval
 bash scripts/run_lm_eval_baseline.sh http://<2080Ti设备IP>:8080
+PROFILE=full bash scripts/run_lm_eval_baseline.sh http://<IP>:8080   # 更全面但更慢
 ```
 
-完整说明（事实标准是什么、官方 model card 分数对照、污染与后端差异等）见 **`docs/标准与对比说明.md`**。
+完整说明（事实标准是什么、官方 model card 分数对照、污染与后端差异等）见 **`docs/标准与对比说明.md`**；
+安装步骤、任务档位、后端参数格式、结果解读见**`docs/标准基准测评指南.md`**。
+
+> 本机（macOS + 沙箱环境）实测**装不上** lm_eval（沙箱拒绝创建带连字符的目录），
+> 请在 2080Ti 上建 venv 安装并运行，详见标准基准测评指南。
 
 ## 一、测评维度与评分方法（共 180 题）
 
