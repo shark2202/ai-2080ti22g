@@ -1,0 +1,20 @@
+{"id": "ma_001", "category": "math_reasoning", "question": "小明有3盒铅笔，每盒12支。他送给同学8支，还剩多少支？", "answer": "28"}
+{"id": "ma_002", "category": "math_reasoning", "question": "一个长方形长8厘米、宽5厘米，它的周长是多少厘米？", "answer": "26"}
+{"id": "ma_003", "category": "math_reasoning", "question": "苹果每千克5元，买3.5千克需要多少钱？", "answer": "17.5"}
+{"id": "ma_004", "category": "math_reasoning", "question": "一辆汽车2小时行驶了120千米，它的平均速度是多少千米/小时？", "answer": "60"}
+{"id": "ma_005", "category": "math_reasoning", "question": "一个数加上它的两倍等于36，这个数是多少？", "answer": "12"}
+{"id": "ma_006", "category": "math_reasoning", "question": "某班有40名学生，男生占55%，女生有多少名？", "answer": "18"}
+{"id": "ma_007", "category": "math_reasoning", "question": "一本书共120页，小红每天看15页，看了5天后还剩多少页？", "answer": "45"}
+{"id": "ma_008", "category": "math_reasoning", "question": "鸡兔同笼，共有35个头、94只脚，鸡有多少只？", "answer": "23"}
+{"id": "ma_009", "category": "math_reasoning", "question": "一件商品先涨价10%，再降价10%，最终价格是原价的百分之几？", "answer": "99"}
+{"id": "ma_010", "category": "math_reasoning", "question": "一个水池有进水管每小时进水10吨、出水管每小时出水6吨。两管同时打开，多少小时可以蓄水30吨？", "answer": "7.5"}
+{"id": "ma_011", "category": "math_reasoning", "question": "等差数列 2, 5, 8, 11, ... 的第20项是多少？", "answer": "59"}
+{"id": "ma_012", "category": "math_reasoning", "question": "一个正方形的边长扩大到原来的3倍，它的面积扩大到原来的多少倍？", "answer": "9"}
+{"id": "ma_013", "category": "math_reasoning", "question": "一项工程，3人5天完成15方，按同样效率计算，7人挖63方需要多少天？", "answer": "9"}
+{"id": "ma_014", "category": "math_reasoning", "question": "抛一枚均匀硬币3次，恰好出现2次正面的概率是多少（用最简分数表示）？", "answer": "3/8"}
+{"id": "ma_015", "category": "math_reasoning", "question": "本金10000元，年利率3%，存一年后本息共多少元？", "answer": "10300"}
+{"id": "ma_016", "category": "math_reasoning", "question": "一个正方体的棱长为4厘米，它的体积是多少立方厘米？", "answer": "64"}
+{"id": "ma_017", "category": "math_reasoning", "question": "5个连续偶数之和为90，其中最大的数是多少？", "answer": "22"}
+{"id": "ma_018", "category": "math_reasoning", "question": "一列火车长200米，以20米/秒的速度行驶，完全通过一座400米长的大桥需要多少秒？", "answer": "30"}
+{"id": "ma_019", "category": "math_reasoning", "question": "甲乙两人年龄之和为50岁，甲比乙大4岁，乙是多少岁？", "answer": "23"}
+{"id": "ma_020", "category": "math_reasoning", "question": "某商品打八折后售价为160元，它的原价是多少元？", "answer": "200"}

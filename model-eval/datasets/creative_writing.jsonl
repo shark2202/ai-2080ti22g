@@ -1,0 +1,8 @@
+{"id": "cr_001", "category": "creative_writing", "prompt": "写一个关于人工智能与人类成为朋友的短篇故事，不少于200字。", "checks": [{"type": "min_chars", "value": 200}, {"type": "keywords_min", "values": ["人工智能", "AI", "机器人"], "min": 1}, {"type": "keywords_min", "values": ["朋友", "友谊"], "min": 1}]}
+{"id": "cr_002", "category": "creative_writing", "prompt": "写一首关于秋天的五言绝句，共四句，每句五个字，每句单独一行。", "checks": [{"type": "line_count", "value": 4}, {"type": "lines_char_len", "value": 5}, {"type": "keywords_min", "values": ["秋", "落叶", "黄", "霜", "雁", "风"], "min": 1}]}
+{"id": "cr_003", "category": "creative_writing", "prompt": "为一家开在街角的咖啡店写一句宣传语，不超过20个字。", "checks": [{"type": "max_chars", "value": 20}, {"type": "has_cjk"}]}
+{"id": "cr_004", "category": "creative_writing", "prompt": "写一段智能手机的产品描述，突出拍照和续航两个卖点，不少于80字。", "checks": [{"type": "min_chars", "value": 80}, {"type": "keywords_min", "values": ["拍照", "相机", "摄像", "镜头"], "min": 1}, {"type": "keywords_min", "values": ["续航", "电池"], "min": 1}]}
+{"id": "cr_005", "category": "creative_writing", "prompt": "以“雨夜”开头，写一段悬疑氛围的描写，不少于100字。", "checks": [{"type": "starts_with", "value": "雨夜"}, {"type": "min_chars", "value": 100}]}
+{"id": "cr_006", "category": "creative_writing", "prompt": "写一封求职信的正文，应聘Python开发工程师岗位，不少于150字。", "checks": [{"type": "min_chars", "value": 150}, {"type": "keywords_min", "values": ["Python"], "min": 1}, {"type": "keywords_min", "values": ["工程师", "开发", "应聘", "职位"], "min": 1}]}
+{"id": "cr_007", "category": "creative_writing", "prompt": "用三个比喻形容“时间”，每句以“时间是”开头。", "checks": [{"type": "regex_count", "pattern": "时间是", "min": 3}]}
+{"id": "cr_008", "category": "creative_writing", "prompt": "写一段鼓励正在备考的朋友的话，语气温暖，不少于80字。", "checks": [{"type": "min_chars", "value": 80}]}

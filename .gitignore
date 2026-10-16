@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+
+# 本机/设备相关配置（可能含内网 IP、API Key），从 config.example.toml 复制
+config.toml
+
+# 测评运行产物
+results/
+*_demo/
+
+# 模型权重
+*.gguf

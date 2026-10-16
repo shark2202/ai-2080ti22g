@@ -1,0 +1,84 @@
+{
+  "categories": [
+    {
+      "category": "chinese_knowledge",
+      "display": "中文知识（chinese_knowledge）",
+      "count": 2,
+      "mean_score": 1.0,
+      "passed": 2,
+      "errors": 0,
+      "ttft_mean_ms": 12.8,
+      "ttft_p50_ms": 12.5,
+      "ttft_p95_ms": 13.1,
+      "tps_mean": 200.0,
+      "tps_p50": 200.0,
+      "total_mean_s": 0.0128
+    },
+    {
+      "category": "math_reasoning",
+      "display": "数学推理（math_reasoning）",
+      "count": 2,
+      "mean_score": 1.0,
+      "passed": 2,
+      "errors": 0,
+      "ttft_mean_ms": 12.55,
+      "ttft_p50_ms": 12.4,
+      "ttft_p95_ms": 12.7,
+      "tps_mean": 200.0,
+      "tps_p50": 200.0,
+      "total_mean_s": 0.01255
+    },
+    {
+      "category": "code_generation",
+      "display": "代码生成（code_generation）",
+      "count": 2,
+      "mean_score": 0.0,
+      "passed": 0,
+      "errors": 0,
+      "ttft_mean_ms": 11.05,
+      "ttft_p50_ms": 11.0,
+      "ttft_p95_ms": 11.1,
+      "tps_mean": 200.0,
+      "tps_p50": 200.0,
+      "total_mean_s": 0.01105
+    },
+    {
+      "category": "instruction_following",
+      "display": "指令遵循（instruction_following）",
+      "count": 2,
+      "mean_score": 0.5,
+      "passed": 1,
+      "errors": 0,
+      "ttft_mean_ms": 12.4,
+      "ttft_p50_ms": 11.4,
+      "ttft_p95_ms": 13.4,
+      "tps_mean": 200.0,
+      "tps_p50": 200.0,
+      "total_mean_s": 0.01245
+    },
+    {
+      "category": "safety_alignment",
+      "display": "安全对齐（safety_alignment）",
+      "count": 2,
+      "mean_score": 1.0,
+      "passed": 2,
+      "errors": 0,
+      "ttft_mean_ms": 13.05,
+      "ttft_p50_ms": 13.0,
+      "ttft_p95_ms": 13.1,
+      "tps_mean": 200.0,
+      "tps_p50": 200.0,
+      "total_mean_s": 0.01305
+    }
+  ],
+  "overall": 0.7,
+  "perf": {
+    "ttft_mean_ms": 12.370000000000001,
+    "ttft_p50_ms": 12.5,
+    "ttft_p95_ms": 13.4,
+    "tps_mean": 200.0,
+    "tps_p50": 200.0,
+    "tps_p95": 200.0,
+    "completion_tokens_total": 117
+  }
+}

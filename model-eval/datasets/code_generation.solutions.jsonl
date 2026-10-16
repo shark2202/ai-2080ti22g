@@ -1,0 +1,20 @@
+{"id": "co_001", "entry_point": "add", "code": "def add(a, b):\n    return a + b\n"}
+{"id": "co_002", "entry_point": "is_palindrome", "code": "def is_palindrome(s):\n    return s.lower() == s.lower()[::-1]\n"}
+{"id": "co_003", "entry_point": "fibonacci", "code": "def fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n"}
+{"id": "co_004", "entry_point": "factorial", "code": "def factorial(n):\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n"}
+{"id": "co_005", "entry_point": "gcd", "code": "def gcd(a, b):\n    while b:\n        a, b = b, a % b\n    return a\n"}
+{"id": "co_006", "entry_point": "reverse_string", "code": "def reverse_string(s):\n    return s[::-1]\n"}
+{"id": "co_007", "entry_point": "count_vowels", "code": "def count_vowels(s):\n    return sum(1 for c in s.lower() if c in 'aeiou')\n"}
+{"id": "co_008", "entry_point": "is_prime", "code": "def is_prime(n):\n    if n < 2:\n        return False\n    i = 2\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += 1\n    return True\n"}
+{"id": "co_009", "entry_point": "binary_search", "code": "def binary_search(arr, target):\n    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        if arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n"}
+{"id": "co_010", "entry_point": "fizzbuzz", "code": "def fizzbuzz(n):\n    result = []\n    for i in range(1, n + 1):\n        if i % 15 == 0:\n            result.append('FizzBuzz')\n        elif i % 3 == 0:\n            result.append('Fizz')\n        elif i % 5 == 0:\n            result.append('Buzz')\n        else:\n            result.append(str(i))\n    return result\n"}
+{"id": "co_011", "entry_point": "sum_digits", "code": "def sum_digits(n):\n    return sum(int(d) for d in str(abs(n)))\n"}
+{"id": "co_012", "entry_point": "dedupe", "code": "def dedupe(lst):\n    seen = set()\n    result = []\n    for x in lst:\n        if x not in seen:\n            seen.add(x)\n            result.append(x)\n    return result\n"}
+{"id": "co_013", "entry_point": "two_sum", "code": "def two_sum(nums, target):\n    seen = {}\n    for i, x in enumerate(nums):\n        if target - x in seen:\n            return [seen[target - x], i]\n        seen[x] = i\n    return []\n"}
+{"id": "co_014", "entry_point": "bubble_sort", "code": "def bubble_sort(arr):\n    a = list(arr)\n    n = len(a)\n    for i in range(n):\n        for j in range(n - i - 1):\n            if a[j] > a[j + 1]:\n                a[j], a[j + 1] = a[j + 1], a[j]\n    return a\n"}
+{"id": "co_015", "entry_point": "celsius_to_fahrenheit", "code": "def celsius_to_fahrenheit(c):\n    return c * 9 / 5 + 32\n"}
+{"id": "co_016", "entry_point": "is_balanced", "code": "def is_balanced(s):\n    stack = []\n    pairs = {')': '(', ']': '[', '}': '{'}\n    for ch in s:\n        if ch in '([{':\n            stack.append(ch)\n        elif ch in ')]}':\n            if not stack or stack.pop() != pairs[ch]:\n                return False\n    return not stack\n"}
+{"id": "co_017", "entry_point": "word_freq", "code": "def word_freq(text):\n    freq = {}\n    for w in text.lower().split():\n        freq[w] = freq.get(w, 0) + 1\n    return freq\n"}
+{"id": "co_018", "entry_point": "transpose", "code": "def transpose(matrix):\n    return [list(row) for row in zip(*matrix)]\n"}
+{"id": "co_019", "entry_point": "max_subarray", "code": "def max_subarray(nums):\n    best = cur = nums[0]\n    for x in nums[1:]:\n        cur = max(x, cur + x)\n        best = max(best, cur)\n    return best\n"}
+{"id": "co_020", "entry_point": "capitalize_words", "code": "def capitalize_words(s):\n    return ' '.join(w.capitalize() for w in s.split())\n"}

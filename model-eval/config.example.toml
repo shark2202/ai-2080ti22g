@@ -1,0 +1,52 @@
+# ============================================================
+# model-eval 测评配置（复制本文件为 config.toml 后按需修改）
+# ============================================================
+
+[server]
+# llama.cpp server 的 OpenAI 兼容端点（末尾不含 /chat/completions）
+# 本机部署填 http://127.0.0.1:8080/v1；远程 2080Ti 设备填 http://<设备IP>:8080/v1
+base_url = "http://127.0.0.1:8080/v1"
+# llama.cpp 默认不需要 API Key，可留空
+api_key = ""
+# 单题请求超时（秒）。27B 模型 + 思考模式建议不小于 600
+timeout = 600
+
+[model]
+# 报告中展示的模型名
+name = "qwen3.8-27b"
+# Qwen3 系列默认开启思考模式（先输出推理再给答案），会显著变慢。
+# 若只测最终答案能力，取消下面这行注释关闭思考；若想测思考能力则注释掉并调大 max_tokens
+chat_template_kwargs = { enable_thinking = false }
+
+[generation]
+# 测评要求可复现：温度固定为 0（贪心解码）
+temperature = 0.0
+top_p = 1.0
+max_tokens = 2048
+# 可选停止词，字符串数组，例如 ["###"]
+stop = []
+
+[prompts]
+# 系统提示词，留空表示不加系统提示（标准化测评建议留空）
+system = ""
+# 以下三类提示词模板可覆盖，留空则用内置默认模板
+# choice = "..."
+# math = "..."
+# code = "..."
+
+[eval]
+# 运行的测评维度（完整列表用 python3 run_eval.py --list-categories 查看）
+categories = [
+    "chinese_knowledge",
+    "english_knowledge",
+    "math_reasoning",
+    "code_generation",
+    "logic_reasoning",
+    "instruction_following",
+    "safety_alignment",
+    "creative_writing",
+]
+# 代码题单测执行超时（秒）
+code_timeout = 15
+# 结果输出目录（相对于工具目录）
+output_dir = "results"

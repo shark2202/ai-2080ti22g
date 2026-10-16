@@ -1,0 +1,20 @@
+{"id": "lo_001", "category": "logic_reasoning", "question": "如果所有的猫都会爬树，而咪咪是一只猫，那么可以推出？", "options": {"A": "咪咪不会爬树", "B": "咪咪会爬树", "C": "有些猫不会爬树", "D": "咪咪不是猫"}, "answer": "B"}
+{"id": "lo_002", "category": "logic_reasoning", "question": "已知“所有的金属都导电，铜是金属”，可以推出？", "options": {"A": "铜不导电", "B": "铜导电", "C": "所有导电的物质都是金属", "D": "有些金属不导电"}, "answer": "B"}
+{"id": "lo_003", "category": "logic_reasoning", "question": "数列 1, 4, 9, 16, 25, ? 的下一项是？", "options": {"A": "30", "B": "32", "C": "36", "D": "49"}, "answer": "C"}
+{"id": "lo_004", "category": "logic_reasoning", "question": "数列 2, 3, 5, 7, 11, ? 的下一项是？", "options": {"A": "12", "B": "13", "C": "15", "D": "17"}, "answer": "B"}
+{"id": "lo_005", "category": "logic_reasoning", "question": "已知“所有A都是B，有些B是C”，以下哪项一定为真？", "options": {"A": "所有C都是A", "B": "有些C是B", "C": "所有A都是C", "D": "有些C不是B"}, "answer": "B"}
+{"id": "lo_006", "category": "logic_reasoning", "question": "“如果下雨，地就会湿。现在地没有湿”，可以推出？", "options": {"A": "下雨了", "B": "没有下雨", "C": "地一定是干的", "D": "无法判断"}, "answer": "B"}
+{"id": "lo_007", "category": "logic_reasoning", "question": "今天是星期三，100天后是星期几？", "options": {"A": "星期三", "B": "星期四", "C": "星期五", "D": "星期六"}, "answer": "C"}
+{"id": "lo_008", "category": "logic_reasoning", "question": "如果5台机器5分钟能生产5个零件，那么100台机器生产100个零件需要多少分钟？", "options": {"A": "5分钟", "B": "20分钟", "C": "100分钟", "D": "500分钟"}, "answer": "A"}
+{"id": "lo_009", "category": "logic_reasoning", "question": "类比推理：医生∶医院 相当于 教师∶？", "options": {"A": "学生", "B": "学校", "C": "课本", "D": "知识"}, "answer": "B"}
+{"id": "lo_010", "category": "logic_reasoning", "question": "类比推理：手指∶手 相当于 树枝∶？", "options": {"A": "树叶", "B": "树", "C": "森林", "D": "花"}, "answer": "B"}
+{"id": "lo_011", "category": "logic_reasoning", "question": "找出不同类的一项：苹果、香蕉、橙子、葡萄、胡萝卜", "options": {"A": "苹果", "B": "香蕉", "C": "胡萝卜", "D": "葡萄"}, "answer": "C"}
+{"id": "lo_012", "category": "logic_reasoning", "question": "甲、乙、丙三人中只有一人说真话。甲说：“乙说谎”；乙说：“丙说谎”；丙说：“甲和乙都在说谎”。说真话的是谁？", "options": {"A": "甲", "B": "乙", "C": "丙", "D": "无法确定"}, "answer": "B"}
+{"id": "lo_013", "category": "logic_reasoning", "question": "一本书涨价20%后售价36元，它的原价是多少元？", "options": {"A": "24元", "B": "28元", "C": "30元", "D": "32元"}, "answer": "C"}
+{"id": "lo_014", "category": "logic_reasoning", "question": "若“所有鸟都会飞”为假，则以下哪项一定为真？", "options": {"A": "所有鸟都不会飞", "B": "有些鸟不会飞", "C": "没有鸟会飞", "D": "企鹅不是鸟"}, "answer": "B"}
+{"id": "lo_015", "category": "logic_reasoning", "question": "小明比小红高，小红比小刚高，以下哪项一定正确？", "options": {"A": "小刚比小明高", "B": "小明比小刚高", "C": "三人一样高", "D": "无法比较"}, "answer": "B"}
+{"id": "lo_016", "category": "logic_reasoning", "question": "有红、蓝、白三个盒子，只有一个盒子里有礼物。红盒子上写着“礼物在这里”，蓝盒子上写着“礼物不在这里”，白盒子上写着“礼物不在红盒子里”。已知三句话中只有一句为真，礼物在哪个盒子里？", "options": {"A": "红盒子", "B": "蓝盒子", "C": "白盒子", "D": "条件不足，无法判断"}, "answer": "B"}
+{"id": "lo_017", "category": "logic_reasoning", "question": "一天（24小时）中，时钟的时针和分针一共重合多少次？", "options": {"A": "11次", "B": "12次", "C": "22次", "D": "24次"}, "answer": "C"}
+{"id": "lo_018", "category": "logic_reasoning", "question": "已知“有些学生喜欢数学，有些喜欢数学的学生也喜欢物理”，以下哪项一定为真？", "options": {"A": "所有喜欢数学的学生都喜欢物理", "B": "有些喜欢数学的学生喜欢物理", "C": "有些学生不喜欢数学", "D": "喜欢物理的学生都喜欢数学"}, "answer": "B"}
+{"id": "lo_019", "category": "logic_reasoning", "question": "已知“如果明天天气晴朗，我们就去爬山；我们没去爬山”，可以推出？", "options": {"A": "明天天气晴朗", "B": "明天天气不晴朗", "C": "我们去了爬山", "D": "无法判断"}, "answer": "B"}
+{"id": "lo_020", "category": "logic_reasoning", "question": "某实验室规定：穿白大褂的必须戴护目镜。小王没戴护目镜，可以推出？", "options": {"A": "小王没穿白大褂", "B": "小王穿了白大褂", "C": "小王不是实验人员", "D": "无法判断"}, "answer": "A"}
