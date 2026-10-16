@@ -7,6 +7,7 @@
     python3 run_eval.py --config config.toml --only math_reasoning,code_generation
     python3 run_eval.py --config config.toml --limit 5  # 每个维度只跑前 5 题
     python3 run_eval.py --config config.toml --resume   # 续跑未完成的 run
+    python3 run_eval.py --check-endpoint               # 端点连通性 + 试跑一次推理
     python3 run_eval.py --self-test                     # 框架自检（不依赖模型）
     python3 run_eval.py --validate-datasets             # 数据集完整性校验
     python3 run_eval.py --list-categories               # 列出全部测评维度
@@ -35,6 +36,10 @@ def main(argv=None):
     parser.add_argument("--output-dir", help="输出目录（默认 results/）")
     parser.add_argument("--self-test", action="store_true", help="框架自检：评分器单测 + mock 服务端全链路测试")
     parser.add_argument("--validate-datasets", action="store_true", help="校验数据集完整性（含代码题参考答案执行验证）")
+    parser.add_argument("--check-endpoint", action="store_true",
+                        help="检查端点连通性并试跑一次推理（跑测评前建议先执行）")
+    parser.add_argument("--no-probe", action="store_true",
+                        help="配合 --check-endpoint：只探活不发推理请求")
     parser.add_argument("--list-categories", action="store_true", help="列出全部测评维度")
     args = parser.parse_args(argv)
 
@@ -57,6 +62,14 @@ def main(argv=None):
         return 2
 
     cfg = config_mod.load_config(args.config)
+
+    if args.check_endpoint:
+        from evalkit.preflight import check_endpoint
+        ok, lines = check_endpoint(cfg, probe=not args.no_probe)
+        for ln in lines:
+            print(ln)
+        return 0 if ok else 1
+
     only = [c.strip() for c in args.only.split(",") if c.strip()] if args.only else None
 
     print("模型能力标准化测评")

@@ -67,13 +67,19 @@ vim config.toml   # 修改 base_url 指向你的 llama.cpp 服务
 
 关键配置项：`server.base_url`（端点）、`model.name`、`generation`（温度固定 0）、`eval.categories`（维度开关）。
 
-### 3. 自检（不依赖模型，先跑这个）
+### 3. 自检与连通性检查
 
 ```bash
+# 框架自检（不依赖模型服务，换机器/换 Python 版本后先跑这个）
 python3 run_eval.py --self-test
+
+# 端点连通性检查：探活 + 试跑一次推理，报告 TTFT 与 tok/s
+python3 run_eval.py --config config.toml --check-endpoint
 ```
 
-内置 mock 服务端全链路自检：评分器单元测试 → 数据集校验（含代码题参考答案执行验证）→ 端到端跑通 8 个维度。**换机器/换 Python 版本后建议先跑一次。**
+`--self-test` 内置 mock 服务端，覆盖评分器单元测试 → 数据集校验（含代码题参考答案执行验证）→ 端到端跑通 8 个维度。
+
+`--check-endpoint` 用于跑测评前确认四件事：服务是否在监听、模型名是否对得上、能否生成、速度量级够不够（低于 3 tok/s 会提示改用 `--limit` 试跑）。失败时按①②③④ 顺序给出排查提示。加 `--no-probe` 只探活、不发推理请求。
 
 ### 4. 运行测评
 
@@ -84,14 +90,14 @@ python3 run_eval.py --config config.toml
 # 只跑部分维度
 python3 run_eval.py --config config.toml --only math_reasoning,code_generation
 
-# 每维度抽样试跑
+# 每维度抽样试跑（强烈建议正式跑之前先来一次，确认题目难度与评分合理）
 python3 run_eval.py --config config.toml --limit 5
 
 # 中断后续跑（自动跳过已完成的题）
 python3 run_eval.py --config config.toml --resume
 ```
 
-27B Q4 在 2080Ti 上约 15-30 tok/s，全量 180 题预计 30-60 分钟；结果逐题落盘，随时可 `--resume`。
+27B Q4 在 2080Ti 上约 15-30 tok/s，全量 180 题预计 30-60 分钟；结果逐题落盘，随时 `--resume`（`--resume` 会自动接上最近一次未跑完的 run 目录）。
 
 ### 5. 查看结果
 
@@ -111,9 +117,12 @@ python3 run_eval.py --config config.toml --resume
 ```bash
 python3 run_eval.py --list-categories      # 列出全部维度
 python3 run_eval.py --validate-datasets    # 校验题库完整性
-python3 run_eval.py --self-test            # 框架自检
+python3 run_eval.py --self-test            # 框架自检（不需要模型）
+python3 run_eval.py --check-endpoint       # 检查端点连通性并试跑推理
 python3 run_eval.py --config config.toml   # 全量测评
 ```
+
+带`--config` 的命令还会额外接受：`--only 维度1,维度2`、`--limit N`、`--resume`、`--run-id 名称`、`--output-dir 路径`。
 
 ## 四、如何扩展题库（保持标准化）
 
@@ -159,6 +168,7 @@ model-eval/
 │   ├── checks.py             #   指令遵循规则检查器
 │   ├── runner.py             #   运行器（增量落盘/断点续跑）
 │   ├── report.py             #   报告生成
+│   ├── preflight.py          #   端点连通性/试跑检查
 │   ├── mock_server.py        #   内置 mock 服务端（自检用）
 │   ├── selftest.py           #   自检
 │   └── validate.py           #   数据集校验
