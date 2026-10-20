@@ -1,0 +1,135 @@
+# 2080 Ti 22GB 运行时调研汇总
+
+面向 **单张 RTX 2080 Ti 22GB（SM75/Turing）** 的推理运行时选型调研，汇总 2026-10-20/21 期间的实测与核对结果。
+
+## 〇、定位与数字可信度（先读这一节）
+
+本文是**运行时选型与容量调研**，不是模型能力测评（能力测评见 `model-eval/`）。所有数字分三类，逐项标注：
+
+| 标注 | 含义 |
+|---|---|
+| **【实测】** | 本机真实测量（真权重或同架构 dummy 权重，注明） |
+| **【同架构】** | dummy 权重实测：架构/内核/KV 记账/显存足迹真实，逐 token 速率仅作参考 |
+| **【推算】** | 由带宽/参数量/参考机折算，**未实测**，不得当结论引用 |
+
+跨机器对比不成立：本文数字只属于"本机 + 本路线 + 本口径"。
+
+## 一、设备与网络现实（决定全部时间成本）
+
+| 项 | 值 |
+|---|---|
+| GPU | 1× RTX 2080 Ti 22,528 MiB（驱动 580.178.04），SM75，无第二张卡 |
+| CPU / 内存 | 2× Xeon E5-2673 v4（56 线程，单 NUMA 节点）/ 31 GB RAM + 2 GB swap |
+| `CommitLimit − Committed_AS` | **仅 ~2.6 GiB**（ComfyUI 5.4GB、ToDesk 1.3GB、code-server ×5 ~3.5GB 占了 commit） |
+| OS / 工具链 | Ubuntu 22.04.5、kernel 6.8、glibc 2.35；**只有 gcc/g++ 11 与 gcc 12（无 `g++-12`）**；系统 `nvcc` 是 11.5，可用 CUDA 在 `/usr/local/cuda-13.4` |
+| 磁盘 | 916 GB 盘 / 可用 704 GB（NVMe） |
+
+**网络（代理是最大变量）**：
+
+| 路径 | 结果 |
+|---|---|
+| Clash 代理 `192.168.8.184:7890` | ~300 KB/s，且对 github / hf-mirror / pypi.org / jsdelivr / download.pytorch.org **TLS 断**（`SSL routines::unexpected eof`） |
+| hf-mirror **直连** | 单流 1.09 MB/s，多连接可持续 ~2 MB/s、突发 9.5 MB/s ✅ |
+| aliyun PyPI / pytorch-wheels 直连 | ✅ |
+| ghfast.top / gh-proxy.com **直连** | git ✅（可作 `FLASHQLA_REPO` / `BUILD_GIT_MIRROR_PREFIX`） |
+| ModelScope 直连 | ✅（多模态/GGUF 权重主源） |
+
+**准则**：能直连不走代理；大文件多连接 + 短尝试 + 速度下限（<4KB/s 持续 30s 即弃）。
+
+## 二、运行时候选对照
+
+| 运行时 | 后端 | 27B 可用性 | 速度 | 结论 |
+|---|---|---|---|---|
+| **llama.cpp / KVMem**（`qwen3.8-2080ti-256k`） | CUDA（SM75 专项补丁 `turing-mmvq-mmq-routing.diff` 等） | ✅ 13.0 GB Q2 mix + 1.14 GB DFlash2 | **【实测】45–48 tok/s 日常、64.7 短上下文、prefill 361–380 tok/s、256K logical（KV 外置检索）** | **单卡 27B 的唯一可用答案** |
+| **vLLM-2080Ti-Definitive**（fork） | CUDA（SM75 内核回退 + FlashQLA legacy GDN） | ❌ 权重地板 18.60 GB → KV ≈ 0 | 9B FP8：**【实测】prefill ~3,020 tok/s、decode 47.2、1–4 路并发 47→75（normal）/85（fast）tok/s、0 preemption** | **并发/长文档车道**；单卡 9B 可到 262K 上下文 |
+| `qwen3.8-27b-in-c`（自研，纯 C） | 纯 CPU | ✅ IQ1_M 6.73 GB / Q4_K_M 16.46 GB | **【推算】1.5–2.5 tok/s**（参考机 2.52/1.88） | CPU 兜底车道；本机 `make strict` 通过 |
+| `deepseek-v4-in-c`（第三方） | CPU + 可选 `--gpu`（dense trunk 上位） | 284B Flash ≈160 GB 磁盘 | **【推算】~0.5–0.6 tok/s**（作者实测 1.62–1.74 s/token） | 唯一"装得下的超 RAM 模型"；**已实测可为 sm_75 编译** |
+| `kimi-k3-in-c`（第三方） | 纯 CPU（0 GPU） | 2.78T，检查点 **1.56 TB** | 5.6–26.5 s/token | ❌ **本机装不下**（缺约 1 TB 磁盘） |
+
+## 三、模型与量化选项（vLLM 视角的"权重地板"）
+
+| 目标 | 最小可用体积 | 单卡可行性 |
+|---|---:|---|
+| Qwen3.8-27B（FP8 / NVFP4 / INT4 / AWQ / GPTQ / bnb） | **18.60 GB**（RedHatAI INT4） | ❌ 权重后 KV 余量 ≈ 0；dense 卸载后 decode 掉到个位数 |
+| Qwen3.8-27B GGUF（K/IQ 全系，含 5.71 GB IQ1_S） | — | ❌ vLLM 的 `vllm-gguf-plugin` **支持 K/IQ 类型但无 `qwen3_5`/hybrid/GDN 实现** → 架构不支持 |
+| Qwen3.8-9B FP8（`compressed-tensors`） | 11.91 GB | ✅ 已验证（262K 上限、7.53× 并发 @32K） |
+| **Qwen3.8-2B / 4B Distill（safetensors）** | 4.57 / 9.34 GB | ✅ **甜点区**：KV 余量 ~13 / ~8.6 GiB → **【推算】256K × 3 / × 2 并发** |
+| Qwen3.6-35B-A3B（MoE，3B 激活） | 16.8–22.2 GB（IQ3_S→Q4_K_M） | ✅（llama.cpp）**全放显存 → 【推算】100–300 tok/s** |
+| Qwen3.8-Flash-Next 131B-A6B | ~32–42 GB（IQ2 档） | ⚠️ 需专家卸载（显存+内存 ≈ 48 GiB）**【推算】5–20 tok/s** |
+| DeepSeek-V4-Flash 284B | ~160 GB 磁盘 | ⚠️ 流式（~0.5 tok/s）或 KTransformers |
+
+**GGUF 索引**（`local-ai-zone.github.io/gguf_models.json`，38,814 条）：对 vLLM **不可用**（架构阻塞，非量化类型）；
+对 llama.cpp 有价值：Qwen3.8-27B 有 732 条，最小 IQ1_S 5.71 GB / IQ2_XXS 8.37 GB。
+
+## 四、"突破单一资源上限"的四轴
+
+| 轴 | 机制 | 代价 | 本机 |
+|---|---|---|---|
+| ① KV 层 | KV 主体/老块放内存或 SSD | 检索延迟 | ✅ 已在用（KVMem）；vLLM 侧 **【实测】前缀复用 TTFT 12.53s → 0.244s（51×）** |
+| ② **权重层·MoE 专家卸载** | 专家放内存，attention+KV 在显存 | 小（只算激活专家） | ✅ **最优**：llama.cpp `-cmoe`/`--n-cpu-moe`/`-ot`（本机二进制已核对支持） |
+| ③ 计算层 | CPU 参与算子计算 | 中等 | ⏳ KTransformers（2026-05 起支持 DeepSeek-V4-Flash） |
+| ④ 权重层·磁盘流式 | 权重每 token 从磁盘过一遍 | 极大（秒级/token） | ⚠️ 仅"完全装不下"时（deepseek-v4-in-c / colibri） |
+
+上游作者选型表（照抄）：装得进显存/内存 → **llama.cpp**；装得进**显存+内存之和** → **KTransformers**；
+都装不下且要逐 bit 一致 → `deepseek-v4-in-c`；都装不下且要快 → **colibri**。
+
+## 五、本机实测数据
+
+### 5.1 vLLM（fork）单卡能力矩阵【同架构 dummy 权重】
+| KV 精度 | MAX_MODEL_LEN | GPU KV tokens | 并发余量 | 显存 |
+|---|---:|---:|---:|---:|
+| FP8 | 32K | 246,622 | 7.53× | 18,136 MiB |
+| FP8 | 131K | 501,275 | 3.82× | ~19.8 GiB（+offload） |
+| FP8 | 229K | 292,864 | 1.28× | 18,136 MiB |
+| FP8 | 262K | 294,012 | 1.12× | 18,136 MiB |
+| TQ4NC | 262K | 444,079 | 1.69× | 17,154 MiB |
+| TQ4NC + 三层 offload | 262K | 915,547（含 CPU 层） | 3.49× | 20,202 MiB |
+
+### 5.2 vLLM 真权重（9B FP8，SHA256 已校验）
+| 项 | 值 |
+|---|---|
+| 加载 / 质量闸门 | 4.10 s / **4/4**（Paris、2、Water、8K 长上下文取回 Paris） |
+| 4K/128 参考口径 | **prefill ~3,020 tok/s、decode 47.2 tok/s、TTFT 1.36 s** |
+| 并发 1/2/4（normal） | 47.29 / 40.08 / **74.80** tok/s 聚合，0 preemption |
+| 并发 1/2/4（fast） | 47.28 / 42.53 / **85.25** tok/s 聚合，0 preemption |
+| 关键内核 | Marlin weight-only FP8（SM75 回退）、FlashQLA legacy SM75 GDN prefill、Triton GDN decode、mamba align |
+
+### 5.3 与显存共存（ComfyUI 占 4.56 GiB 时）
+| GPU_UTIL | 预算 | KV 余量 | FP8 上下文上限 |
+|---|---:|---:|---:|
+| 0.90（独占） | 19.33 GiB | 4.61 GiB | ~302K |
+| 0.78（共存上限） | 16.75 GiB | 2.03 GiB | ~133K |
+| 0.70 | 15.04 GiB | 0.32 GiB | ~21K |
+
+vLLM 在显存不足时**拒绝启动**（`free memory < util×total`）——这是保护行为，不是故障。
+
+## 六、结论速查
+
+**三车道**（端口不冲突，显存互斥）：
+1. 27B 交互 → **llama.cpp/KVMem**（:8080，45–48 tok/s，256K logical）
+2. 并发/长文档 → **vLLM 9B FP8**（:8100，聚合 75–259 tok/s；或改 2B/4B 换更大 KV）
+3. GPU 被占用时的兜底 → **CPU 引擎**（`qwen3.8-27b-in-c`，:8190）
+
+**"跑更大模型"三档**：
+1. 35B-A3B（≤21 GiB）→ llama.cpp 全显存 → **【推算】100–300 tok/s**
+2. DeepSeek-V4-Flash 284B（>48 GiB）→ **KTransformers**（待评估）
+3. 同上且要纯 C → `deepseek-v4-in-c --gpu`（sm_75 已验证可编）/ colibri → ~0.5 tok/s
+
+## 七、复现入口
+
+| 内容 | 位置 |
+|---|---|
+| vLLM 构建/启动/验证脚本与单卡 profile | `vLLM-2080Ti-Definitive/tools/single-card/`、`profiles/local/1x2080Ti/qwen9b/w8a16/` |
+| vLLM 详尽经验教训（10 节、367 行） | `vLLM-2080Ti-Definitive/docs/single-card-2080ti-lessons.zh-CN.md` |
+| llama.cpp/KVMem 基线、配置、基准数据 | `qwen3.8-2080ti-256k/`（`config.sh`、`docs/BENCHMARKS.md`、`benchmarks/summary.json`） |
+| 纯 C 引擎 | `qwen3.8-27b-in-c/`、`kimi-k3-in-c/`、`deepseek-v4-in-c/` |
+
+## 八、未验证清单（不得当结论）
+
+1. 真权重的 **131K/229K/262K 长上下文** 与 **分层 offload**（仅 dummy 验证过；真权重被 ComfyUI 显存占用挡住）
+2. `MODE=fast` vs `normal` 的 **cudagraph capture sizes A/B**（dummy 暗示 ~2× 并发差距，真权重待测）
+3. **长跑服务上的 prefill 递减**（长上下文/混合流量后出现，全新服务不复现；已排除降频与 prefix cache）
+4. **Qwen3.8-2B/4B** 在 vLLM 的单卡实测（甜点区结论目前是推算）
+5. **35B-A3B** 的 100–300 tok/s（推算；需下 17.3 GB 实测）
+6. `deepseek-v4-in-c` 的 sm_75 **运行时**正确性/性能（只验证过可编译）
+7. **KTransformers** 在本机（SM75 + 48 GiB 组合）的可行性与速度
