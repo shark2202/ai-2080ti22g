@@ -42,6 +42,7 @@
 |---|---|---|---|---|
 | **llama.cpp / KVMem**（`qwen3.8-2080ti-256k`） | CUDA（SM75 专项补丁 `turing-mmvq-mmq-routing.diff` 等） | ✅ 13.0 GB Q2 mix + 1.14 GB DFlash2 | **【实测】45–48 tok/s 日常、64.7 短上下文、prefill 361–380 tok/s、256K logical（KV 外置检索）** | **单卡 27B 的唯一可用答案** |
 | **vLLM-2080Ti-Definitive**（fork） | CUDA（SM75 内核回退 + FlashQLA legacy GDN） | ❌ 权重地板 18.60 GB → KV ≈ 0 | 9B FP8：**【实测】prefill ~3,020 tok/s、decode 47.2、1–4 路并发 47→75（normal）/85（fast）tok/s、0 preemption** | **并发/长文档车道**；单卡 9B 可到 262K 上下文 |
+| **NInfer for Turing**（`mr-september/ninfer-2080ti-22g`） | 自研 C++/CUDA 引擎（原为 RTX 5090/Blackwell，移植到 sm_75） | ⚠️ 需专有 `.ninfer` v3 权重（18.2 GB，无 GGUF reader） | **【实测】无投机 26.6–26.8 tok/s；MTP d3 按内容 33.2–53.0 tok/s**（prefill 313–348 tok/s），**本机已构建并跑通** | **第三车道**：单请求速度与 llama.cpp 相当，但上下文只有 64K（官方 97–99K），且吃 4.4 GiB 主机内存 |
 | `qwen3.8-27b-in-c`（自研，纯 C） | 纯 CPU | ✅ IQ1_M 6.73 GB / Q4_K_M 16.46 GB | **【推算】1.5–2.5 tok/s**（参考机 2.52/1.88） | CPU 兜底车道；本机 `make strict` 通过 |
 | `deepseek-v4-in-c`（第三方） | CPU + 可选 `--gpu`（dense trunk 上位） | 284B Flash ≈160 GB 磁盘 | **【推算】~0.5–0.6 tok/s**（作者实测 1.62–1.74 s/token） | 唯一"装得下的超 RAM 模型"；**已实测可为 sm_75 编译** |
 | `kimi-k3-in-c`（第三方） | 纯 CPU（0 GPU） | 2.78T，检查点 **1.56 TB** | 5.6–26.5 s/token | ❌ **本机装不下**（缺约 1 TB 磁盘） |
@@ -102,6 +103,50 @@
 | 0.70 | 15.04 GiB | 0.32 GiB | ~21K |
 
 vLLM 在显存不足时**拒绝启动**（`free memory < util×total`）——这是保护行为，不是故障。
+
+
+### 5.4 NInfer for Turing（本机实测 · 2026-10-22）
+
+| 项 | 值 |
+|---|---|
+| 权重 | `qwen3_8_27b.ninfer` 20,437,521,664 B，sha256 `81f924d4…375da`（脚本 + 独立复算双验） |
+| 启动 | 15.2 s（权重 9.1 s @1.83 GiB/s）→ `engine ready` |
+| 显存 | 权重 15.4 GiB + 序列 2.36 GiB（int8 KV payload 2.19 GiB）+ runtime 2.45 GiB = **计划 17.9 GiB**；**实测峰值 18726 MiB** |
+| 主机内存 | **host context pinned 3.15 GiB + host 权重 1.26 GiB**（embedding 表放 pinned host，省 1.26 GiB 显存） |
+| 无投机基线 | **26.6–26.8 tok/s**（与官方 bench-short 的 27.03 ± 0.11 一致），prefill 313–348 tok/s |
+| 端到端 | `ninfer-serve` :8082 已接进 pi（`~/.pi/agent/models.json` 的 `ninfer-local` provider），中文问答正常 |
+
+**投机收益由输出熵决定（跨引擎同现象）** —— 同一权重、同一台机、只改输出类型：
+
+| 输出类型 | 无投机 | MTP d3 | 接受率 | 接受长度 | 加速 |
+|---|---:|---:|---:|---:|---:|
+| 结构化 JSON | 26.6 | **53.0** | **97.2%** | 3.92 | 1.99× |
+| 代码（英文） | 26.8 | 42.3 | 70.7% | 3.11 | 1.58× |
+| 中文散文 | 26.6 | 33.2 | 48.8% | 2.45 | 1.25× |
+| 中文散文（d1） | — | 33.0 | **69.9%** | 1.70 | 1.24× |
+
+散文用 d1 时**接受率高得多（69.9% vs 48.8%）但速度持平** —— 与官方文档"散文 depth 1–2 更好、代码 depth 3 最好"一致。
+⚠️ 这与 llama.cpp 侧**独立测到的同一现象**（DFlash2 在中文创作散文上接受率 0.12、加速为负；在结构化任务上 0.75–0.92）互相印证：
+**投机解码的收益由输出熵决定，不由引擎决定。** 结论：agent / 代码 / 工具调用负载值得开投机；自由创作别开。
+
+### 5.5 三个 27B 运行时的本机对照
+
+| | llama.cpp / KVMem | NInfer | vLLM-Definitive |
+|---|---|---|---|
+| 27B 可用 | ✅ 13.0 GB Q2 mix | ✅ 但要 18.2 GB 专有权重 | ❌ 地板 18.60 GB / 架构阻塞 |
+| 无投机 decode | 22.5 tok/s（本会话题面口径） | **26.7 tok/s** | — |
+| 最好成绩 | **65.7 tok/s**（+DFlash2 结构化） | **53.0 tok/s**（+MTP 结构化 JSON） | 9B FP8：47.2 单 / 85.3 聚合 |
+| 显存占用 | 15806 MiB | 18726 MiB 峰值 | 18136 MiB（9B FP8） |
+| 上下文 | **256K logical**（KV 外置） | 64K（官方 97–99K 带 MTP） | 9B 可 262K |
+| 主机内存 | 几乎不占 | **4.4 GiB pinned** | 少量 |
+| 依赖成本 | 已就绪 | **13 条依赖坑**（见 `ninfer-2080ti-22g/scripts/setup_local_deps.sh`） | 已就绪 |
+| 权重格式 | GGUF（通用） | **`.ninfer` 专有**（无 GGUF reader） | safetensors 量化 |
+
+**选型结论（在本机）**：
+1. **要 27B + 长上下文 + 通用权重** → llama.cpp/KVMem（256K logical，权重最灵活）
+2. **要 27B + 最高单请求速度 + 愿意锁死权重格式与上下文长度** → NInfer（53.0 tok/s 结构化负载；代价：18.2 GB 专有权重 + 4.4 GiB pinned host + 64K ctx）
+3. **要并发 / 长文档 / 9B** → vLLM-Definitive（27B 在这条路上是死的：GGUF 架构阻塞 + safetensors 权重地板 18.60 GB）
+4. 三者**不能同时驻留**（本机 22.5 GB 卡）：llama.cpp 13.9 + NInfer 18.3 > 22.5
 
 ## 六、结论速查
 
