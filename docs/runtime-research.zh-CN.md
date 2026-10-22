@@ -42,7 +42,7 @@
 |---|---|---|---|---|
 | **llama.cpp / KVMem**（`qwen3.8-2080ti-256k`） | CUDA（SM75 专项补丁 `turing-mmvq-mmq-routing.diff` 等） | ✅ 13.0 GB Q2 mix + 1.14 GB DFlash2 | **【实测】45–48 tok/s 日常、64.7 短上下文、prefill 361–380 tok/s、256K logical（KV 外置检索）** | **单卡 27B 的唯一可用答案** |
 | **vLLM-2080Ti-Definitive**（fork） | CUDA（SM75 内核回退 + FlashQLA legacy GDN） | ❌ 权重地板 18.60 GB → KV ≈ 0 | 9B FP8：**【实测】prefill ~3,020 tok/s、decode 47.2、1–4 路并发 47→75（normal）/85（fast）tok/s、0 preemption** | **并发/长文档车道**；单卡 9B 可到 262K 上下文 |
-| **NInfer for Turing**（`mr-september/ninfer-2080ti-22g`） | 自研 C++/CUDA 引擎（原为 RTX 5090/Blackwell，移植到 sm_75） | ⚠️ 需专有 `.ninfer` v3 权重（18.2 GB，无 GGUF reader） | **【实测】无投机 26.6–26.8 tok/s；MTP d3 按内容 33.2–53.0 tok/s**（prefill 313–348 tok/s），**本机已构建并跑通** | **第三车道**：单请求速度与 llama.cpp 相当，但上下文只有 64K（官方 97–99K），且吃 4.4 GiB 主机内存 |
+| **NInfer for Turing**（`mr-september/ninfer-2080ti-22g`） | 自研 C++/CUDA 引擎（原为 RTX 5090/Blackwell，移植到 sm_75） | ⚠️ 需专有 `.ninfer` v3 权重（18.2 GB，无 GGUF reader） | **【实测】无投机 26.6–26.8 tok/s；MTP d3 按内容 33.2–53.0 tok/s**（prefill 313–348 tok/s）；**4 路并发聚合 94.9 / 8 路 185.7 tok/s（近线性扩展）**；上下文 126K(带 MTP)–152K；**本机已构建并跑通** | **第三车道**：单请求速度与 llama.cpp 相当、**并发扩展近线性**、上下文 126–152K（高于官方 97–125K），代价是 4.4 GiB 主机内存 + 18.2 GB 专有权重 |
 | `qwen3.8-27b-in-c`（自研，纯 C） | 纯 CPU | ✅ IQ1_M 6.73 GB / Q4_K_M 16.46 GB | **【推算】1.5–2.5 tok/s**（参考机 2.52/1.88） | CPU 兜底车道；本机 `make strict` 通过 |
 | `deepseek-v4-in-c`（第三方） | CPU + 可选 `--gpu`（dense trunk 上位） | 284B Flash ≈160 GB 磁盘 | **【推算】~0.5–0.6 tok/s**（作者实测 1.62–1.74 s/token） | 唯一"装得下的超 RAM 模型"；**已实测可为 sm_75 编译** |
 | `kimi-k3-in-c`（第三方） | 纯 CPU（0 GPU） | 2.78T，检查点 **1.56 TB** | 5.6–26.5 s/token | ❌ **本机装不下**（缺约 1 TB 磁盘） |
@@ -211,6 +211,7 @@ Turing 无 bf16 张量核，bf16 运算的累加顺序随编译器与内核而�
 | 27B 可用 | ✅ 13.0 GB Q2 mix | ✅ 但要 18.2 GB 专有权重 | ❌ 地板 18.60 GB / 架构阻塞 |
 | 无投机 decode | 22.5 tok/s（本会话题面口径） | **26.7 tok/s** | — |
 | 最好成绩 | **65.7 tok/s**（+DFlash2 结构化） | **53.0 tok/s**（+MTP 结构化 JSON） | 9B FP8：47.2 单 / 85.3 聚合 |
+| **并发聚合** | 单流优化（优势到 `--parallel 4` 就消失） | **4 路 94.9 / 8 路 185.7 tok/s（近线性扩展）** | 9B FP8：4 路 74.8(normal)/85.3(fast) |
 | 显存占用 | 15806 MiB | 18726 MiB 峰值 | 18136 MiB（9B FP8） |
 | 上下文 | **256K logical**（KV 外置） | 64K（官方 97–99K 带 MTP） | 9B 可 262K |
 | 主机内存 | 几乎不占 | **4.4 GiB pinned** | 少量 |
