@@ -116,6 +116,53 @@ vLLM 在显存不足时**拒绝启动**（`free memory < util×total`）——�
 | 无投机基线 | **26.6–26.8 tok/s**（与官方 bench-short 的 27.03 ± 0.11 一致），prefill 313–348 tok/s |
 | 端到端 | `ninfer-serve` :8082 已接进 pi（`~/.pi/agent/models.json` 的 `ninfer-local` provider），中文问答正常 |
 
+#### 5.4.1 官方标准测量协议的本机复现（2026-10-22）
+
+用 `docs/turing-port.md` 的 standard measurements（`ninfer_bench`，语料 `bench/fixtures/bench_corpus.ids`），
+对照官方在 **Windows 11 / CUDA 12.9 / MSVC 14.44 / 驱动 610.88** 上 2026-10-19 发布的数据：
+
+| Run | 指标 | 官方 | **本机（Linux / CUDA 13.4 / gcc 11.4）** | 差 |
+|---|---|---:|---:|---:|
+| bench-short | pp512 | 615.99 ± 0.70 | **587.78 ± 0.72** | −4.6% |
+| bench-short | tg256（MTP off） | 27.03 ± 0.11 | **26.81 ± 0.18** | −0.8% |
+| bench-mtp | pp512 | 594.56 ± 4.31 | **578.76 ± 1.04** | −2.7% |
+| bench-mtp | tg256 | 29.58 ± 0.05 | **28.64 ± 0.16** | −3.2% |
+| bench-mtp | **接受率** | 0.377 | **0.3771** | **0.0%（四位小数一致）** |
+| bench-long | pp8192 | 568.63 ± 7.59 | **563.94 ± 1.67** | −0.8% |
+| bench-long | pp65536 | 457.51 ± 7.26 | **435.24 ± 0.56** | −4.9% |
+| bench-long | tg32 | 25.91 ± 0.01 | **25.62 ± 0.00** | −1.1% |
+
+真文本场景（`examples/cli/messages`，官方：code_python 47.5 vs 26.3、story_en_mystery 28.8 vs 26.0）：
+
+| 场景 | 官方 MTP / none | **本机 MTP / none** | 本机接受率 |
+|---|---|---|---:|
+| scenario_code_python | 47.5 / 26.3 | **48.5 / 27.1** | **83.9%** |
+| scenario_code_typescript | — | 46.2 / 26.7 | 81.1% |
+| scenario_story_en_mystery | 28.8 / 26.0 | **29.3 / 26.9** | 38.5% |
+| scenario_story_zh_dialogue | — | 27.0 / 26.6 | **33.2%** |
+
+→ **速度与投机行为跨平台复现良好（0.8–4.9%），接受率精确到四位小数一致。**
+
+#### 5.4.2 ⚠️ 唯一没有复现的：perplexity
+
+协议 B（`--quick --kv-dtype int8`，同一权重、同一语料、同一命令）：
+
+| 域 | 官方（2026-10-19） | **本机** | 差 |
+|---|---:|---:|---:|
+| chinese_reference | 6.767452 | **5.005013** | −26.0% |
+| english_long_form | 7.178341 | **6.891122** | −4.0% |
+| english_reference | 6.454913 | **6.195144** | −4.0% |
+| ninfer_code | 1.673458 | **1.652818** | −1.2% |
+| **overall** | **4.796799** | **4.343197** | **−9.5%** |
+
+已排除的原因：**权重不是漂移的**（HF 上该 artifact 自 2026-09-15 未更新，sha256 与我们下载的一致，
+官方测量在 10-19 之后）；**语料不是漂移的**（`eval/corpora/perplexity-1m/data` 最后修改 2026-08-29）；
+scored-token 数差 56（261,167 vs 261,223）官方文档自己说明"是运行时结果"。
+→ 剩下的解释是**两个构建的浮点数值不等价**（Windows/MSVC/CUDA 12.9 vs Linux/gcc/CUDA 13.4；
+Turing 无 bf16 张量核，bf16 运算的累加顺序随编译器与内核而变）。
+**实践含义**：NInfer 的**性能结论可以跨平台引用**，但**输出逐 token 不会与官方一致**；
+在 Turing 上评估模型质量时，别把 PPL 与官方数字对比。
+
 **投机收益由输出熵决定（跨引擎同现象）** —— 同一权重、同一台机、只改输出类型：
 
 | 输出类型 | 无投机 | MTP d3 | 接受率 | 接受长度 | 加速 |
