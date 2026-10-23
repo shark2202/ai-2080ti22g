@@ -18,12 +18,14 @@
 | 车道 | 方案 | 端口 | 速度 |
 |---|---|---|---|
 | 27B 交互 | llama.cpp / KVMem（13 GB Q2 mix + KVMem 256K logical） | 8080 | **45–48 tok/s**（实测） |
-| 27B 交互（agent / 代码负载） | **NInfer for Turing**（18.2 GB 专有 `.ninfer`，MTP d3） | 8082 | **48.5–53.0 tok/s** 单流；4 路并发聚合 **94.9**、8 路 **185.7**（实测，近线性扩展） |
+| 27B 交互（agent / 代码负载） | **NInfer for Turing**（18.2 GB 专有 `.ninfer`，MTP d3） | 8082 | **48.5–53.0 tok/s** 单流；4 路并发聚合 **91.8**（每路 ±6%、每路 16K 上下文；llama.cpp 同口径 124.9） |
 | 并发 / 长文档 | vLLM 9B FP8（单卡 262K 上限；2B/4B 换更大 KV） | 8100 | **聚合 75–259 tok/s**（实测） |
 | GPU 被占用时兜底 | CPU 引擎 `qwen3.8-27b-in-c` | 8190 | 1.5–2.5 tok/s（推算） |
 
-⚠️ **2026-10-20 修订**：早期版本把"并发"划归 vLLM 专属，**该判断已过时** —— NInfer 27B 四路并发聚合 94.9 tok/s
-已超过 vLLM 9B FP8 的 74.8/85.3。vLLM 相对 NInfer 只剩**上下文长度**与**模型可换性**。
+⚠️ **两次修订**：① 早期版本把"并发"划归 vLLM 专属，**已过时** —— NInfer 27B 四路并发聚合 91.8 tok/s
+已高于 vLLM 9B FP8 的 74.8/85.3。② 但**同口径下 llama.cpp 的 27B 是 124.9，比 NInfer 更高** ——
+之前那份"NInfer 并发最好"缺 llama.cpp 对照，且两边用同一 prompt，被 llama.cpp 的 `ngram-mod`
+缓存命中污染（接受长度从 3–6 虚高到 18–53）。修正过程见 `docs/runtime-research.zh-CN.md` §5.4.1b。
 完整三方对比见 [`docs/三运行时对比结论.md`](docs/三运行时对比结论.md)。
 
 **跑更大模型**：装得进显存 → llama.cpp（**35B-A3B 全显存，推算 100–300 tok/s**）；装得进"显存+内存之和" → **KTransformers**（待评估）；都装不下 → 磁盘流式（`deepseek-v4-in-c --gpu`，已验 sm_75 可编译，~0.5 tok/s）。
