@@ -192,6 +192,42 @@ llama.cpp 的 `ngram-mod` 会在 n-gram 表里命中上一路相同文本，接�
 → 本机上限**高于**官方，差值正好对应"别人桌面占着 2.3 GB 显存、我们只占 0.28 GB"。
 官方文档也写了"它随桌面和其他程序占多少显存而变"。
 
+
+#### 5.4.1c ⚠️ NInfer 的引擎级崩溃：并发 + prefix 复用（2026-10-26 定位）
+
+**症状**：服务进程活着、显存照占、但 `/health` 返回 `{"status":"unavailable"}`，
+所有请求 503，**且不会自恢复 —— 必须重启进程**。日志里第一条是：
+
+```
+ERROR req#N failed during generation | openai-chat | HTTP 500 | internal error
+```
+
+**触发条件**（三个对照实验定位，本机反复复现）：
+
+| 条件 | 结果 |
+|---|---|
+| 先有一条请求走过 checkpoint 快路径（日志 `cache 158 (94.6%, checkpoint)`），随后**同毫秒**到达的并发请求 | ❌ **引擎挂**（2 通道、4 通道都挂） |
+| 同上，但加 `--no-prefix-reuse` | ✅ 串行 60 + 并发 32 + 串行 20，**零错误** |
+| 同上，但每条 prompt 不同（走不到 checkpoint） | ✅ 120/120 |
+
+**与显存余量无关**：ctx 81,920（余 2,140 MiB）下照样崩 —— 与先前那个"materialize 失败"的猜测不同，
+这次是 checkpoint 路径本身的问题。**与通道数也无关**（2 通道第 1 轮就死）。
+→ 结论：**要么关掉 prefix 复用，要么只能 1 通道（无并发）**，两者互斥。
+
+**而在本机上，关掉它并不亏**（这是最有用的一条）：
+
+| 负载 | 开 prefix-reuse | 关 prefix-reuse |
+|---|---|---|
+| 串行同 prompt 180 token × 30 | 墙钟 9,058 ms · **9.4 tok/s** | 墙钟 **8,081 ms** · **17.6 tok/s** |
+| 长 prompt 20,576 token × 8 | 墙钟 41.28 s · prefill 40,894 ms | 墙钟 **40.87 s** · prefill **39,935 ms** |
+
+checkpoint 的物化开销**超过了它省下的 prefill**（20K prompt 的 prefill 只要 ~40 s，而物化同样要 40 s）。
+所以那"94.6% 命中"在本机是**净亏损 + 崩溃源**。
+→ 本机默认 `--no-prefix-reuse`（`config.ninfer.sh` 的 `NINFER_EXTRA_ARGS`）。
+
+⚠️ 这是**上游的 bug**（引擎级失败且不自恢复），值得给 `mr-september/ninfer-2080ti-22g` 报 issue：
+标题大意 "concurrent requests + prefix reuse kills the engine (unavailable, needs restart)"。
+
 #### 5.4.2 ⚠️ 唯一没有复现的：perplexity
 
 协议 B（`--quick --kv-dtype int8`，同一权重、同一语料、同一命令）：
