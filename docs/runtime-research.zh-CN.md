@@ -281,6 +281,38 @@ Turing 无 bf16 张量核，bf16 运算的累加顺序随编译器与内核而�
 3. **要并发 / 长文档 / 9B** → vLLM-Definitive（27B 在这条路上是死的：GGUF 架构阻塞 + safetensors 权重地板 18.60 GB）
 4. 三者**不能同时驻留**（本机 22.5 GB 卡）：llama.cpp 13.9 + NInfer 18.3 > 22.5
 
+
+### 5.6 失败风格：llama.cpp 崩溃过吗？
+
+**没崩过。** 本机证据：`qwen3.8-2080ti-256k/logs/` 下 **36 个 llama.cpp / KVMem 日志，崩溃迹象 0 处**
+（`ggml_abort` / `CUDA error` / `illegal memory` / `device-side assert` / `segmentation fault` / `core dumped`）。
+唯一那条带错误的是 `server-20261021-083304`：
+
+```
+allocating 7256.76 MiB on device 0: cudaMalloc failed: out of memory
+→ llama_model_load: error loading model: unable to allocate CUDA0 buffer
+→ exiting due to model loading error        ← 加载失败，干净退出
+```
+
+那是显存被 ComfyUI 占着（17.3 GB）、模型 7.2 GB 装不下 —— **拒绝加载并退出**，不是崩溃。
+
+**但 llama.cpp 出过事，是被别人杀的**（本会话记录）：另一个 pi 会话执行 `start-llama.sh` 时，该脚本按
+`/proc/*/exe` 匹配杀同二进制路径的进程 → 我的 llama-server router 与下载进程被连带杀掉两次
+（下载那次的特征是 4 个分片 mtime 落在同一秒 = 整组 SIGTERM）。**不是崩溃，是同机多 agent 会话互杀。**
+
+**失败风格对比（做长期服务时比速度更重要）**：
+
+| | llama.cpp | NInfer |
+|---|---|---|
+| 显存不够 | **响亮失败**：拒绝加载、退出、日志写明 | 同样：加载失败 + 退出 |
+| 运行时分配失败 | 进程级错误 | **安静失败**：进程活着、显存照占、`/health` 503、**不自恢复**、必须手动重启（§5.4.1c） |
+| 崩溃迹象 | 36 个日志 0 处 | 反复 `internal error` → `unavailable` |
+
+⚠️ llama.cpp **自身**也有 Turing 上的已知崩溃模式，只是不在这台机的 llama.cpp 路径上：
+**SageAttention 2.2.0** 在 sm_75 上接管线会进程级原生崩溃（`docs/03-sageattention-crash.md`）、
+**Triton JIT 缺 Python.h** 会让文本编码器 2.4 秒崩（用 `TORCH_DISABLE_NATIVE_JIT=1` 绕过）——
+两者都在 **ComfyUI + H3** 这条链上。而 NInfer 这次是引擎**内部**的 checkpoint 路径，**没有绕过开关**。
+
 ## 六、结论速查
 
 **三车道**（端口不冲突，显存互斥）：
