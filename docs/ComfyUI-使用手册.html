@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComfyUI 使用手册 · RTX 2080 Ti 22G 本机环境</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#fff; --ink:#1b1f24; --muted:#5b6470; --line:#e3e6ea;
+    --accent:#2f6fed; --accent-soft:#eaf1ff; --warn:#b26a00; --warn-bg:#fff6e5;
+    --ok:#0f7b45; --ok-bg:#e9f7ef; --bad:#c0392b; --bad-bg:#fdecea; --code-bg:#f2f4f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.75 -apple-system,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif;}
+  .wrap{display:flex;max-width:1360px;margin:0 auto;gap:28px;padding:24px 20px 80px}
+  nav{position:sticky;top:16px;align-self:flex-start;width:250px;flex:0 0 250px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    max-height:calc(100vh - 32px);overflow:auto}
+  nav b{display:block;font-size:13px;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+  nav a{display:block;color:var(--ink);text-decoration:none;padding:4px 6px;border-radius:6px;font-size:13.5px}
+  nav a:hover{background:var(--accent-soft);color:var(--accent)}
+  nav a.sub{padding-left:16px;color:var(--muted);font-size:12.5px}
+  main{flex:1;min-width:0}
+  header.hero{background:linear-gradient(135deg,#22314d,#3a5580);color:#fff;border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  header.hero h1{margin:0 0 8px;font-size:26px}
+  header.hero p{margin:4px 0 0;opacity:.9;font-size:14px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:20px}
+  h2{margin:0 0 6px;font-size:20px;border-left:4px solid var(--accent);padding-left:10px}
+  h3{margin:22px 0 8px;font-size:16.5px;color:#243b64}
+  h4{margin:16px 0 6px;font-size:14.5px;color:var(--muted);text-transform:none}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;background:#fff}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:#f0f3f8;font-weight:600}
+  tbody tr:nth-child(even){background:#fafbfc}
+  code,kbd{background:var(--code-bg);border-radius:5px;padding:1px 5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.6px}
+  pre{background:#111823;color:#e6edf3;border-radius:10px;padding:13px 15px;overflow:auto;font-size:12.8px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  .box{border-radius:10px;padding:12px 15px;margin:14px 0;font-size:14px;border:1px solid}
+  .box p:first-child{margin-top:0}.box p:last-child{margin-bottom:0}
+  .tip{background:var(--ok-bg);border-color:#bfe4cf}
+  .warn{background:var(--warn-bg);border-color:#f0d49b}
+  .bad{background:var(--bad-bg);border-color:#f2c1bb}
+  .info{background:var(--accent-soft);border-color:#c3d8ff}
+  .box b{font-weight:700}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 14px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.3px}
+  .n{background:#fff;border:1.5px solid #9db4dd;border-radius:8px;padding:5px 9px;color:#1f3c73;white-space:nowrap}
+  .n.io{border-color:#8fc9a8;color:#14603a;background:#f2fbf6}
+  .n.out{border-color:#e0b878;color:#7a4a06;background:#fffaf1}
+  .ar{color:#8a94a3}
+  .tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:20px;background:var(--accent-soft);color:var(--accent);margin-right:5px}
+  .tag.ok{background:var(--ok-bg);color:var(--ok)}
+  .tag.no{background:var(--bad-bg);color:var(--bad)}
+  .tag.mid{background:var(--warn-bg);color:var(--warn)}
+  ul,ol{padding-left:22px}
+  li{margin:4px 0}
+  .k{color:var(--muted);font-size:13px}
+  hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+  footer{color:var(--muted);font-size:12.5px;text-align:center;padding:10px}
+  @media (max-width:900px){nav{display:none}.wrap{padding:12px}}
+  @media print{nav{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <b>目录</b>
+  <a href="#start">0 · 30 秒上手</a>
+  <a href="#terms">1 · 术语速查</a>
+  <a href="#models">2 · 本机模型清单</a>
+  <a href="#t2i">3 · 场景一：文生图</a>
+  <a href="#t2v">4 · 场景二：文生视频</a>
+  <a href="#i2v">5 · 场景三：图生视频</a>
+  <a href="#extra">6 · 场景四：进阶玩法</a>
+  <a href="#tune">7 · 调参速查表</a>
+  <a href="#faq">8 · 故障排查</a>
+  <a href="#appendix">9 · 附录（路径 / 工作流 / API）</a>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>ComfyUI 使用手册</h1>
+  <p>适用机器：单卡 <b>RTX 2080 Ti 22GB（Turing / sm_75）</b> · ComfyUI <b>v0.33.1</b> · MiniMax-H3（W4A8）+ SDXL</p>
+  <p style="opacity:.8;font-size:13px">面向新手：每个场景都写清「需要哪些节点、怎么连、参数怎么改、改完大概多久」。</p>
+</header>
+
+<!-- ================= 0 ================= -->
+<section id="start">
+<h2>0 · 30 秒上手</h2>
+<p class="sub">先确认服务是活的，再跑一个最简单的文生图。</p>
+
+<h3>0.1 启动 ComfyUI（如果已经在跑，这步跳过）</h3>
+<pre><code>bash /home/a/ai-work/minimax-h3-turing/scripts/h3_launch.local.sh</code></pre>
+<p class="k">这个脚本是本机专用版，等价于在 <code>/home/a/ai-work/ComfyUI</code> 下执行：</p>
+<pre><code>TORCH_DISABLE_NATIVE_JIT=1 .venv/bin/python main.py \
+  --listen 0.0.0.0 --port 8188 \
+  --reserve-vram 2.5 --vram-headroom 0.5 --disable-pinned-memory</code></pre>
+<table>
+<thead><tr><th>启动参数</th><th>为什么是它（新手只要知道"别乱改"）</th></tr></thead>
+<tbody>
+<tr><td><code>--reserve-vram 2.5</code></td><td>永远给显卡留 2.5GB 不动，防止桌面共享显卡时黑屏（TDR）。生成 15 秒长片时改成 <code>4</code>。</td></tr>
+<tr><td><code>--vram-headroom 0.5</code></td><td>显存压力管理余量，同上，防爆。</td></tr>
+<tr><td><code>--disable-pinned-memory</code></td><td>本机 PyTorch 的 pinned memory 读文件路径会 OOM，直接关掉。</td></tr>
+<tr><td><code>TORCH_DISABLE_NATIVE_JIT=1</code></td><td>本机没装 python3.10-dev，Triton 现场编译会崩文本编码器。必须。</td></tr>
+<tr><td><code>--listen 0.0.0.0</code></td><td>⚠️ <b>ComfyUI 没有任何鉴权</b>。同网段任何人都能提交任务、读你的 output。想收紧：<code>H3_LISTEN=127.0.0.1</code>（只本机）或 <code>H3_LISTEN=100.69.133.37</code>（只走 tailscale）。</td></tr>
+</tbody>
+</table>
+<p>浏览器打开：<b>http://127.0.0.1:8188</b>（局域网机器用 <code>http://&lt;本机IP&gt;:8188</code>）。
+日志在 <code>/home/a/ai-work/ComfyUI/h3_server.log</code>。</p>
+
+<h3>0.2 跑通第一个文生图</h3>
+<ol>
+<li>左侧工作流面板点 <b>Workflow → 打开</b>，选 <code>/home/a/ai-work/ComfyUI/user/default/workflows/ui/sdxl_juggernaut_t2i_api_ui.json</code>（也可以直接把文件拖进网页）。</li>
+<li>找到 <b>CLIP Text Encode（正）</b> 节点，把 text 改成你想要的描述，例如 <code>一只橘猫坐在窗台上，午后阳光，胶片质感，浅景深</code>。</li>
+<li>点右上角 <b>Queue Prompt</b>（排队执行）。</li>
+<li>右侧「队列」或 <code>output/image/</code> 目录里出 PNG。</li>
+</ol>
+<div class="box info"><b>新手记住三件事</b>
+<ul>
+<li><b>节点</b>＝一个方块，左边是输入、右边是输出，<b>连线＝把上一个节点的输出插到下一个节点的输入</b>。线连对了，节点框就会亮起来。</li>
+<li><b>seed</b>＝随机数。同一张图想再要一次"一模一样的"，就把 seed 设成 <code>fixed</code>；想换构图就点骰子换数字。</li>
+<li>输出永远在磁盘上：图片 <code>ComfyUI/output/image/</code>，视频 <code>ComfyUI/output/video/</code>。</li>
+</ul></div>
+</section>
+
+<!-- ================= 1 ================= -->
+<section id="terms">
+<h2>1 · 术语速查（白话版）</h2>
+<table>
+<thead><tr><th>词</th><th>一句话解释</th><th>什么时候调它</th></tr></thead>
+<tbody>
+<tr><td><b>节点 node</b></td><td>一个功能方块。左边接输入、右边吐输出。</td><td>搭工作流就是摆节点 + 连线。</td></tr>
+<tr><td><b>latent</b></td><td>图片被压缩后的"草稿"。采样全程在草稿上做，最后由 VAE 翻译成像素。</td><td>一般不直接碰。</td></tr>
+<tr><td><b>VAE</b></td><td>解码器：latent → 图片/视频像素；反向就是"图片 → latent"。</td><td>H3 有两个：视频 VAE、音频 VAE，别搞混。</td></tr>
+<tr><td><b>seed</b></td><td>随机种子。同 seed + 同参数 = 同一结果。</td><td>想微调画面只改它。</td></tr>
+<tr><td><b>steps</b></td><td>迭代次数。越多细节越多，也越慢；到一定步数后不再变好。</td><td>SDXL 25~35；H3 Turbo 4；H3 PDD 8。</td></tr>
+<tr><td><b>cfg</b></td><td>"多听话"。越高越死扣提示词，越高越容易过饱和、塑料感；太低则不听。</td><td>SDXL 4~7；H3 固定 1.0（蒸馏已内置引导）。</td></tr>
+<tr><td><b>sampler / scheduler</b></td><td>去噪算法 + 步长排布。是一对，要配套用。</td><td>SDXL 用 <code>dpmpp_2m + karras</code>；H3 Turbo 用 <code>res_multistep + simple</code>；H3 PDD 用 <code>euler</code>（不许换）。</td></tr>
+<tr><td><b>denoise</b></td><td>重绘强度。1.0 = 从零画；0.5 = 保留一半原图再改。img2img / 图生图用。</td><td>只在"基于已有图修改"时用。</td></tr>
+<tr><td><b>LoRA</b></td><td>一小坨附加权重，给模型加风格或加速。</td><td>H3 的 Turbo 4 步 LoRA、PDD 加速包都是它。</td></tr>
+<tr><td><b>latent → 视频</b></td><td>H3 一次采样同时出画面和声音（原生音轨）。</td><td>音频长度和帧数绑死，见 §4.6。</td></tr>
+<tr><td><b>帧数 length</b></td><td>H3 按 <code>17k+5</code> 的网格对齐（124、209、362…）。24fps，124 帧 ≈ 5.2 秒。</td><td>决定时长与耗时。</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ================= 2 ================= -->
+<section id="models">
+<h2>2 · 本机模型清单（有什么、能干什么）</h2>
+<p class="sub">模型文件主要放在 <code>/home/a/ai-work/models/</code>，由 <code>ComfyUI/extra_model_paths.yaml</code> 挂进来（ComfyUI 自己的 <code>models/</code> 目录基本是空的，只有 pdd_acc 一包）。</p>
+<table>
+<thead><tr><th>用途</th><th>文件</th><th>大小/位置</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><b>文生图</b></td><td><code>Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors</code></td><td>models/checkpoints/</td><td>SDXL 写实/摄影风大模型。本机<b>唯一的出图模型</b>（自带 VAE+CLIP，一个 checkpoint 全包）。</td></tr>
+<tr><td><b>视频主模型</b></td><td><code>minimax_h3_fl2va_pruned_w4a8_mixed_ax1y2jp.safetensors</code></td><td>models/diffusion_models/（另有同款不带后缀的）</td><td>MiniMax-H3 视频 DiT，<b>W4A8 量化</b>（Turing 卡唯一可用形态）。<code>ax1y2jp</code> 与非后缀版差 26KB，实测输出一致。</td></tr>
+<tr><td>文本编码器</td><td><code>qwen3vl_4b_int4_convrot.safetensors</code>（另有 <code>_fp8_scaled</code>）</td><td>models/text_encoders/</td><td>Qwen3-VL 4B，负责把提示词/首帧图读成条件。</td></tr>
+<tr><td>投影矩阵</td><td><code>mmh3-4b-ClipProj-celeb-mlp.safetensors</code></td><td>models/clip_projections/</td><td>把 4B 编码结果投到 H3 需要的空间。</td></tr>
+<tr><td>视频 VAE</td><td><code>minimax_h3_video_vae_fp16.safetensors</code></td><td>models/vae/</td><td>latent ↔ 视频帧。</td></tr>
+<tr><td>音频 VAE</td><td><code>minimax_h3_audio_vae_fp32.safetensors</code></td><td>models/vae/</td><td>latent ↔ 音轨。</td></tr>
+<tr><td>Turbo 4 步 LoRA</td><td><code>minimax_h3_fl2v_lightx2v_turbo_4step_v0.1_noprefix.safetensors</code><br><code>..._v0.1_comfy_resized_avg_rank_21_bf16.safetensors</code><br><code>minimax_h3_fl2v_turbo_4step_v1.0_768p_comfyui_resized_avg_rank_21_bf16.safetensors</code><br><code>minimax_h3_turbo_4step_ema_ckpt500.safetensors</code></td><td>models/loras/</td><td>把 20 步压到 4 步。速度换画质的主力。</td></tr>
+<tr><td>PDD 加速包</td><td><code>MiniMax-H3-FL2VA-Acc-8Step.safetensors</code>（原始格式）<br><code>MiniMax-H3-FL2VA-Acc-8Step_comfy.safetensors</code> / <code>MiniMax-H3-Ref2VA-Acc-8Step_comfy.safetensors</code></td><td>ComfyUI/models/pdd_acc/ 与 models/loras/</td><td>官方 8 步蒸馏（带 PDD 头组，普通 LoRA 加载器读不了）。画质档。</td></tr>
+</tbody>
+</table>
+<div class="box warn"><b>本机硬件天花板（先接受，再调参）</b>
+<ul>
+<li>Turing <b>没有 BF16/FP8 张量核心</b>，显存带宽只有 616 GB/s（3090 的 66%）。视频生成是访存密集型，<b>比 3090 慢约 1.5 倍</b>是物理事实，不是没调好。</li>
+<li>必须用 <b>W4A8</b> 权重。W4A4 的重建误差是 W4A8 的 18 倍，画面直接<b>彩色撕裂</b>。</li>
+<li>SageAttention 2.2.0 + torch2.9 在 sm_75 上<b>管线原生崩溃</b>；T8 双时钟缓存<b>官方判定 Turing 上不要用</b>。加速只能走"LoRA/蒸馏 + 缓存近似"这条路。</li>
+<li>显存：H3 常驻约 19.5G / 22.5G，<b>余量只有 2.5G 左右</b>。同一张卡上不要同时跑本地 LLM，也不要开着 4K 视频浏览器。</li>
+</ul></div>
+</section>
+
+<!-- ================= 3 ================= -->
+<section id="t2i">
+<h2>3 · 场景一：文生图（SDXL / Juggernaut XL）</h2>
+<p class="sub">最快见效的场景，一分钟一张。用来出单帧插画、封面、参考图、给图生视频当首帧。</p>
+
+<h3>3.1 需要哪些节点（7 个）</h3>
+<div class="flow">
+<span class="n">① Load Checkpoint</span><span class="ar">→</span>
+<span class="n">② CLIP Text Encode（正）</span><span class="ar">→</span>
+<span class="n">⑤ KSampler</span><span class="ar">→</span>
+<span class="n">⑥ VAE Decode</span><span class="ar">→</span>
+<span class="n">⑦ Save Image</span>
+</div>
+<div class="flow">
+<span class="n">① Load Checkpoint</span><span class="ar">→</span><span class="n">③ CLIP Text Encode（负）</span><span class="ar">→</span><span class="n">⑤ KSampler</span>
+</div>
+<div class="flow">
+<span class="n">④ Empty Latent Image</span><span class="ar">→</span><span class="n">⑤ KSampler</span>
+</div>
+<table>
+<thead><tr><th>#</th><th>节点（界面名）</th><th>输入怎么接</th><th>输出接到</th><th>作用</th></tr></thead>
+<tbody>
+<tr><td>①</td><td>Load Checkpoint</td><td>ckpt_name 选 <code>Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors</code></td><td>MODEL→⑤ / CLIP→②③ / VAE→⑥</td><td>一次加载模型 + 文本编码器 + VAE。三个输出口都要用。</td></tr>
+<tr><td>②</td><td>CLIP Text Encode（正）</td><td>clip ← ① 的 CLIP</td><td>positive → ⑤</td><td>你的提示词。</td></tr>
+<tr><td>③</td><td>CLIP Text Encode（负）</td><td>clip ← ① 的 CLIP</td><td>negative → ⑤</td><td>不要出现的东西。</td></tr>
+<tr><td>④</td><td>Empty Latent Image</td><td>width / height / batch_size</td><td>latent_image → ⑤</td><td>画布大小和出几张。</td></tr>
+<tr><td>⑤</td><td>KSampler</td><td>model←①，positive←②，negative←③，latent_image←④</td><td>samples → ⑥</td><td>主采样器，seed/steps/cfg 都在这。</td></tr>
+<tr><td>⑥</td><td>VAE Decode</td><td>samples←⑤，vae←①</td><td>images → ⑦</td><td>latent 解码成像素。</td></tr>
+<tr><td>⑦</td><td>Save Image</td><td>images←⑥</td><td>—</td><td>存 PNG 到 <code>output/image/</code>。</td></tr>
+</tbody>
+</table>
+<div class="box tip"><b>照着连线看图：</b>① 的三条线（MODEL / CLIP / VAE）是"公共管道"，②③ 是两根提示词线，④ 是画布线，⑤ 是核心，⑥⑦ 是尾巴。
+<b>缺任何一条线，对应节点框会变红</b>，红框＝没接好。</div>
+
+<h3>3.2 默认参数</h3>
+<table>
+<thead><tr><th>节点</th><th>参数</th><th>默认值</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td>④</td><td>width / height</td><td>1024 × 1024</td><td>SDXL 原生分辨率。其它推荐：竖图 832×1216、横图 1216×832。</td></tr>
+<tr><td>④</td><td>batch_size</td><td>1</td><td>一次出几张，显存 ×N。本机建议 ≤ 4。</td></tr>
+<tr><td>⑤</td><td>seed</td><td>3013（fixed）</td><td>固定=可复现；点骰子=换构图。</td></tr>
+<tr><td>⑤</td><td>steps</td><td>30</td><td>SDXL 的甜点区 25~35。</td></tr>
+<tr><td>⑤</td><td>cfg</td><td>5.0</td><td>SDXL 的甜点区 4~7。</td></tr>
+<tr><td>⑤</td><td>sampler / scheduler</td><td>dpmpp_2m / karras</td><td>稳妥默认，别乱换。</td></tr>
+<tr><td>⑤</td><td>denoise</td><td>1.0</td><td>从零画。改成 0.4~0.6 就变成"改图"（需接 LoadImage）。</td></tr>
+<tr><td>③</td><td>负面提示词</td><td><code>worst quality, low quality, jpeg artifacts, watermark, signature, text</code></td><td>压画质噪点、水印、文字。</td></tr>
+</tbody>
+</table>
+
+<h3>3.3 提示词怎么写</h3>
+<p>公式：<b>主体 + 细节 + 风格 + 镜头/光线 + 质量词</b>，用英文写（SDXL 对英文理解远好于中文）。</p>
+<pre><code>一只橘猫坐在木质窗台，午后侧逆光，毛发细节清晰，85mm 镜头浅景深，
+写实摄影，胶片颗粒感，高细节，masterpiece</code></pre>
+<p class="k">逗号分隔，越靠前权重越高（Juggernaut 对前半段更敏感）。</p>
+
+<h3>3.4 场景化调参：想改什么就动哪里</h3>
+<table>
+<thead><tr><th>你想…</th><th>动哪个参数</th><th>调到</th><th>注意</th></tr></thead>
+<tbody>
+<tr><td>换个构图 / 换张脸</td><td>⑤ seed</td><td>点骰子，或改成 random</td><td>其它一律不动，保证可比。</td></tr>
+<tr><td>更听提示词</td><td>⑤ cfg</td><td>5 → 6.5</td><td>&gt;10 容易过饱和、边缘假。</td></tr>
+<tr><td>细节更足</td><td>⑤ steps</td><td>30 → 40</td><td>收益递减，40 以上基本白烧时间。</td></tr>
+<tr><td>出 4 张挑一张</td><td>④ batch_size</td><td>1 → 4</td><td>显存 ×4，1024² 下没问题。</td></tr>
+<tr><td>改比例</td><td>④ width/height</td><td>832×1216 等</td><td>别用 500 这种怪尺寸。</td></tr>
+<tr><td>风格统一（系列图）</td><td>② prompt 前缀固定</td><td>同一前缀 + 换主体</td><td>本机没有 SDXL 风格 LoRA，靠 prompt 维持一致性。</td></tr>
+<tr><td>局部修图</td><td>denoise 调低 + LoadImage</td><td>0.4~0.6</td><td>加 <b>Load Image</b> 节点替换 ④ 号 Empty Latent Image。</td></tr>
+<tr><td>改分辨率重画</td><td>denoise &lt;1.0 + 改 width/height</td><td>0.6~0.8</td><td>经典 img2img 高清放大流程。</td></tr>
+</tbody>
+</table>
+<div class="box info"><b>文生图的产线位置：</b>它的三个出口分别是 ①当参考图给<b>图生视频</b>当首帧 ②当分镜草图 ③当缩略图/封面。
+本机没有 ControlNet、没有放大模型（<code>upscale_models/</code> 是空的），所以"精准控姿态/高清放大"暂时做不了，别在这上面耗时间。</div>
+</section>
+
+<!-- ================= 4 ================= -->
+<section id="t2v">
+<h2>4 · 场景二：文生视频（MiniMax-H3）</h2>
+<p class="sub">本机最重、也最有价值的能力：一次出片，<b>画面 + 同步音轨</b>一起给。</p>
+
+<div class="box warn"><b>先看这一条</b>H3 有两套加速配方，<b>只能用一套，不能叠加</b>：<br>
+① <b>Turbo 4 步</b>（快，4 步，可复现）② <b>PDD 8 步蒸馏</b>（慢一倍，画质更好）。<br>
+PDD 路线<b>禁止</b>再挂 Turbo LoRA，也<b>禁止</b>再叠任何缓存节点（TeaCache / FirstBlockCache / T8），会直接报错。</div>
+
+<h3>4.1 公共骨架（15 个节点，两条配方共用）</h3>
+<div class="flow">
+<span class="n">① UNETLoader</span><span class="ar">→</span><span class="n">⑤ MiniMaxH3SigmaShift</span><span class="ar">→</span>
+<span class="n">【配方分支】</span><span class="ar">→</span><span class="n">⑦ BasicGuider</span><span class="ar">→</span><span class="n">⑪ SamplerCustomAdvanced</span><span class="ar">→</span>
+<span class="n">⑫ VAEDecode</span><span class="ar">→</span><span class="n">⑭ CreateVideo</span><span class="ar">→</span><span class="n">⑮ SaveVideo</span>
+</div>
+<div class="flow">
+<span class="n">② ClipProjLoader</span><span class="ar">→</span><span class="n">⑥ MiniMaxH3ImageToVideo</span><span class="ar">→</span><span class="n">⑦ BasicGuider</span>
+</div>
+<div class="flow">
+<span class="n">⑥ MiniMaxH3ImageToVideo</span><span class="ar">→</span><span class="n">⑪ SamplerCustomAdvanced（latent_image）</span>
+</div>
+<table>
+<thead><tr><th>#</th><th>节点</th><th>关键参数（本机默认值）</th><th>输出接到</th><th>作用</th></tr></thead>
+<tbody>
+<tr><td>①</td><td>Load Diffusion Model（UNETLoader）</td><td><code>minimax_h3_fl2va_pruned_w4a8_mixed_ax1y2jp.safetensors</code>，weight_dtype=default</td><td>MODEL → ⑤</td><td>装 H3 主模型。</td></tr>
+<tr><td>②</td><td>ClipProjLoader</td><td>clip_name=<code>qwen3vl_4b_int4_convrot.safetensors</code>，type=<b>krea2</b>，projection=<code>mmh3-4b-ClipProj-celeb-mlp.safetensors</code>，device=cuda:0，mode=dynamic</td><td>CLIP → ⑥</td><td>"读提示词+读首帧图"的编码器。<b>type 必须选 krea2</b>（4B 版），projection 与 clip_name 必须配套。</td></tr>
+<tr><td>③</td><td>Load VAE（视频）</td><td><code>minimax_h3_video_vae_fp16.safetensors</code></td><td>VAE → ⑥ 和 ⑫</td><td>视频解码器。</td></tr>
+<tr><td>④</td><td>Load VAE（音频）</td><td><code>minimax_h3_audio_vae_fp32.safetensors</code></td><td>VAE → ⑬</td><td>音频解码器。</td></tr>
+<tr><td>⑤</td><td>ModelSamplingMiniMaxH3（MiniMaxH3SigmaShift）</td><td>shift_video=<b>12.0</b>，shift_audio=<b>3.0</b></td><td>MODEL → 分支 / ⑦ / ⑧</td><td>设置视频/音频两条去噪时钟。<b>这两个数不要改</b>（训练网格，改了 PDD 节点会 fail closed）。</td></tr>
+<tr><td>⑥</td><td>MiniMax H3 Image to Video</td><td>clip←②，vae←③，prompt=你的提示词，width=640，height=352，length=124</td><td>① positive→⑦，② latent→⑪</td><td>核心条件节点。既是文生视频入口，也是图生视频入口（多接一个 first_frame）。</td></tr>
+<tr><td>⑦</td><td>BasicGuider</td><td>model←分支后的模型，conditioning←⑥</td><td>→ ⑪</td><td>引导器，H3 固定 CFG=1.0（不用调）。</td></tr>
+<tr><td>⑨</td><td>RandomNoise</td><td>noise_seed=0</td><td>→ ⑪</td><td>随机源。想换片子就改这个数。</td></tr>
+<tr><td>⑩</td><td>KSamplerSelect</td><td>Turbo 路线 <code>res_multistep</code>；PDD 路线 <code>euler</code></td><td>→ ⑪</td><td>采样算法。<b>按路线选，别混。</b></td></tr>
+<tr><td>⑧</td><td>BasicScheduler</td><td>scheduler=simple，steps=4，denoise=1.0，model←分支后的模型</td><td>sigmas → ⑪</td><td><b>只在 Turbo 路线有</b>。PDD 路线这个节点不存在（sigmas 由 PDD 节点出）。</td></tr>
+<tr><td>⑪</td><td>SamplerCustomAdvanced</td><td>sigmas←⑧或⑯，guider←⑦，noise←⑨，sampler←⑩，latent_image←⑥</td><td>samples → ⑫ 和 ⑬</td><td>真正跑采样的节点。</td></tr>
+<tr><td>⑫</td><td>VAEDecode（视频）</td><td>samples←⑪，vae←③</td><td>images → ⑭</td><td>出画面帧。</td></tr>
+<tr><td>⑬</td><td>VAEDecodeAudio</td><td>samples←⑪，vae←④</td><td>audio → ⑭</td><td>出音轨。</td></tr>
+<tr><td>⑭</td><td>CreateVideo</td><td>images←⑫，audio←⑬，fps=24，bit_depth=8</td><td>video → ⑮</td><td>把帧+音轨封装成视频。</td></tr>
+<tr><td>⑮</td><td>SaveVideo</td><td>format=auto，codec=auto，filename_prefix=<code>video/H3xxx</code></td><td>—</td><td>存 mp4 到 <code>output/video/</code>。</td></tr>
+</tbody>
+</table>
+
+<h3>4.2 配方 A：Turbo 4 步（默认推荐，快）</h3>
+<p>分支处插入节点 <b>MiniMax-H3 Turbo LoRA</b>（<code>MiniMaxH3TurboLoRA</code>）：</p>
+<table>
+<thead><tr><th>参数</th><th>值</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>lora_name</td><td><code>minimax_h3_fl2v_lightx2v_turbo_4step_v0.1_noprefix.safetensors</code></td><td>本机现成、已验证。另一个同款 <code>..._comfy_resized_avg_rank_21_bf16</code> 也行。</td></tr>
+<tr><td>strength</td><td><b>1.0</b></td><td>官方调校值，别乱动。</td></tr>
+<tr><td>low_vram</td><td>false</td><td>true = 把 LoRA 融进权重省显存，但量化底模上会变糊。只在 OOM 时开。</td></tr>
+<tr><td>采样器</td><td><code>res_multistep</code></td><td>配合 simple 调度器 + 4 步。</td></tr>
+<tr><td>调度器 / 步数</td><td>simple / <b>4</b></td><td>可 4~8 步；超过 8 反而过锐。</td></tr>
+</tbody>
+</table>
+<p>可选再插 <b>MiniMax-H3 Turbo Sampler</b>（它在老版 ComfyUI 上保证音画不错步，新版自动等价）。本机 ComfyUI 0.33.1 已原生支持 AV 分时钟，<b>加不加都行</b>。</p>
+
+<h3>4.3 配方 B：PDD 8 步蒸馏（画质档，慢）</h3>
+<p>分支处插入节点 <b>MiniMax H3 PDD Acc LoRA (Apply)</b>（<code>MiniMaxH3PDDAccApply</code>），它<b>一进两出</b>：</p>
+<table>
+<thead><tr><th>参数</th><th>值</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>pdd_file</td><td><code>MiniMax-H3-FL2VA-Acc-8Step.safetensors</code></td><td>FL2VA 配 fl2va 主模型。别拿 Ref2VA 的包配 fl2va 主模型——节点有指纹校验，会报错。</td></tr>
+<tr><td>nfe</td><td><b>8</b>（可 4 / 6）</td><td>模型评估次数。<b>只允许 4、6、8</b>，其它步数会渲染成噪声，节点直接拒绝。</td></tr>
+<tr><td>lora_strength / head_strength</td><td>1.0 / 1.0</td><td>训练值，别改。</td></tr>
+<tr><td>on_off_grid</td><td>error</td><td>采样点不在训练边界时报错（保护你）。</td></tr>
+<tr><td>enabled</td><td>true</td><td>false = 完全旁路（做 A/B 对比时用）。</td></tr>
+</tbody>
+</table>
+<div class="box info"><b>PDD 路线的固定配方（改了就报错）：</b>
+采样器 <code>euler</code> · sigmas <b>直接用该节点第 2 个输出</b>（不再要 BasicScheduler）· CFG 1.0 · shift 12/3 · <b>不挂 Turbo LoRA</b> · <b>不挂任何缓存节点</b>。
+</div>
+
+<h3>4.4 参数调控：想改什么就动哪里</h3>
+<table>
+<thead><tr><th>你想…</th><th>动哪个</th><th>范围 / 建议</th><th>代价</th></tr></thead>
+<tbody>
+<tr><td>画面更清晰</td><td>⑥ width / height</td><td>32 的倍数；本机默认 <b>640×352</b>，可上 896×512 / 1344×768</td><td>时间近似按像素比线性涨；显存吃紧</td></tr>
+<tr><td>片子更长</td><td>⑥ length</td><td><b>17k+5 网格</b>：124≈5.2s、209≈8.7s、362≈15s</td><td>时间线性涨；15 秒要 <code>--reserve-vram 4</code></td></tr>
+<tr><td>换个片子</td><td>⑨ noise_seed</td><td>整数</td><td>免费</td></tr>
+<tr><td>画面更稳/更细腻</td><td>Turbo 路线 steps</td><td>4 → 6~8</td><td>时间 ×1.5~2；>8 过锐</td></tr>
+<tr><td>同参数要可复现</td><td>缓存节点开关</td><td>加缓存会改轨迹 → <b>同 seed 不可复现</b>；要复现就<b>不要</b>加缓存</td><td>—</td></tr>
+<tr><td>运镜更强</td><td>提示词</td><td>写"缓慢推进镜头 / 手持跟拍 / 环绕"</td><td>无</td></tr>
+<tr><td>声音更响</td><td>提示词 + 后期</td><td>提示词写清"环境声 / 对白"；成片挂 <b>-1dB limiter</b></td><td>无</td></tr>
+</tbody>
+</table>
+
+<h3>4.5 提示词三段式</h3>
+<pre><code>【主体】一位穿黑色风衣的男人站在雨夜的霓虹街道
+【动作/运镜】缓慢推近，手持轻微晃动，他抬头看向镜头
+【环境/光线】霓虹反射在积水里，紫蓝色调，浅景深，背景人群虚化
+【声音】雨声，远处车流，低沉的合成器氛围音</code></pre>
+<ul>
+<li>英文写；主体写在最前面。</li>
+<li>H3 <b>原生出音轨</b>，所以可以写"对白/音效/环境声"，写了就可能出对应声音。</li>
+<li>实测量级：Turbo 路线约 <b>-14 dB</b>、PDD 约 <b>-15.9 dB</b>，都不削波，但整体偏轻，成片建议过一遍响度/限制器。</li>
+</ul>
+
+<h3>4.6 耗时预期（本机实测，640×352 · 124 帧 · 24fps · 带音频）</h3>
+<table>
+<thead><tr><th>场景</th><th>配方</th><th>耗时</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>文生视频</td><td>Turbo 4 步</td><td><b>280 s</b>（ComfyUI 0.33.1）/ 320 s（master）</td><td>成片档</td></tr>
+<tr><td>文生视频</td><td>Turbo 4 步 + 缓存阈值 1.0</td><td><b>160 s</b>（−43%）</td><td>草稿快跑档，<b>同 seed 不可复现</b></td></tr>
+<tr><td>文生视频</td><td>PDD 8 步</td><td>600 s</td><td>画质档，可复现</td></tr>
+<tr><td>文生视频</td><td>PDD 8 步 + 缓存</td><td>190~210 s（−34%）</td><td>—</td></tr>
+<tr><td>图生视频</td><td>Turbo 4 步</td><td>395~417 s</td><td>首帧编码有 ~80 s 固定开销</td></tr>
+</tbody>
+</table>
+<p class="k">机理常数：每次缓存命中 ≈ 省一次完整前向（4 步路线 ~60 s/次，8 步 ~75 s/次）。镜头越贵，缓存省得越多。
+另外，冷启动（模型还没驻留显存）额外 +40~60 s。</p>
+
+<h3>4.7 帧数与音频的关系（重要）</h3>
+<div class="box bad"><b>音轨长度和帧数绑死。</b>把原生帧数减半再插帧，画面时长能靠插帧拉回去，<b>但音轨不会跟着变长</b>（181 帧 → 音轨只剩 8 秒）。
+→ 需要原生音频的成片：老老实实生成足帧数，或"分段生成再拼接"。
+→ 后期配音覆盖的产线：可以减帧 + 插帧，省 47%~69% 时间。</div>
+</section>
+
+<!-- ================= 5 ================= -->
+<section id="i2v">
+<h2>5 · 场景三：图生视频（首帧 / 首尾帧）</h2>
+<p class="sub">文生视频工作流只多<b>一个</b>节点：<b>Load Image</b>。</p>
+
+<h3>5.1 怎么加</h3>
+<div class="flow">
+<span class="n">⑳ Load Image</span><span class="ar">→</span><span class="n">⑥ MiniMax H3 Image to Video 的 first_frame 插槽</span>
+</div>
+<table>
+<thead><tr><th>插槽</th><th>接谁</th><th>行为</th></tr></thead>
+<tbody>
+<tr><td>first_frame</td><td>Load Image</td><td>首帧。模型<b>把图拉伸</b>到画布尺寸（不改比例）→ 图的比例和画布不一致会变形。</td></tr>
+<tr><td>last_frame</td><td>再一个 Load Image（可选）</td><td>尾帧。模型按"等比裁切填满"处理，首尾帧之间生成过渡动画（fl2va）。</td></tr>
+</tbody>
+</table>
+
+<h3>5.2 首帧图片怎么准备</h3>
+<table>
+<thead><tr><th>要求</th><th>怎么做</th><th>不这么做会怎样</th></tr></thead>
+<tbody>
+<tr><td>宽高比 = 画布宽高比</td><td>640×352 档位就用 ≈1.82:1 的图（比如 1280×704），先裁好</td><td>人物被横向拉扁</td></tr>
+<tr><td>分辨率别太低</td><td>宽 ≥ 640</td><td>画面糊、细节丢失</td></tr>
+<tr><td>主体清晰、居中</td><td>别用糊成一片的图</td><td>整段视频跟着糊</td></tr>
+<tr><td>构图留出运动空间</td><td>人物别顶满画面</td><td>模型没地方运镜，画面憋屈</td></tr>
+</tbody>
+</table>
+
+<h3>5.3 用哪条配方</h3>
+<ul>
+<li><b>本机图生视频请走 Turbo 4 步路线</b>（<code>ui/h3_w4a8_i2v_bypass_api_ui.json</code>），因为主模型只有 fl2va 一个。</li>
+<li>PDD 的 Ref2VA 包（锁脸/参考图）需要配套的 <b>ref2va 主模型</b>，本机<b>没有</b>；混用会被节点的指纹校验拦下报错。</li>
+<li>FL2VA 这个 PDD 包本身就是"首/尾帧 → 视频"任务，配 first_frame 可以走通图生视频，但要 8 步、慢一倍 → 除非你要"可复现的成片"，否则用 Turbo。</li>
+</ul>
+
+<h3>5.4 场景化调参</h3>
+<table>
+<thead><tr><th>你想…</th><th>做法</th></tr></thead>
+<tbody>
+<tr><td>锁住人物长相</td><td>首帧用人物清晰特写；提示词只写动作/运镜，别改外貌描述</td></tr>
+<tr><td>让画面"动起来"而不跑题</td><td>提示词强调"镜头缓慢推进"，少描述新物体</td></tr>
+<tr><td>首尾帧之间做转场</td><td>接 first_frame + last_frame 两张图</td></tr>
+<tr><td>同一段视频多个版本</td><td>只改 ⑨ noise_seed，其它不动</td></tr>
+<tr><td>时长要 10 秒</td><td>length=209（≈8.7s）或 362（≈15s），别用奇怪的数字，会被自动向上对齐</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ================= 6 ================= -->
+<section id="extra">
+<h2>6 · 场景四：进阶玩法</h2>
+
+<h3>6.1 让本机小模型写剧本（QwenScript 节点）</h3>
+<p>节点 <b>Qwen3.8 Script (local LLM)</b>（分类 <code>MiniMax H3</code>）：让本机的 Qwen3.8-9B 先写出提示词或整份逐镜剧本，再喂给 H3。</p>
+<table>
+<thead><tr><th>输入</th><th>作用</th><th>默认值</th></tr></thead>
+<tbody>
+<tr><td>brief</td><td>题材/梗概</td><td>—</td></tr>
+<tr><td>shot / shots</td><td>写第几镜 / 一共写几镜</td><td>1 / 1</td></tr>
+<tr><td>style</td><td>额外风格要求</td><td>空</td></tr>
+<tr><td>seed</td><td>同 prompt 同 seed = 同一剧本</td><td>3013</td></tr>
+<tr><td>server</td><td>本地 LLM 端点</td><td><code>http://127.0.0.1:8080/v1</code></td></tr>
+<tr><td>min_free_vram_mib</td><td>显存守门：低于此值直接报错，不让它 5 分钟后 OOM</td><td>19700</td></tr>
+<tr><td>reuse_script</td><td>复用已写好的剧本（省时间、不占显存）</td><td>true</td></tr>
+</tbody>
+</table>
+<div class="box warn"><b>显存协议（这个节点存在的唯一理由）</b>：22GB 卡上 LLM 与 H3 <b>不可能同时驻留</b>（LLM 6808 MiB + H3 峰值 18926 MiB &gt; 22528 MiB）。
+所以节点是<b>串行</b>：先卸载 ComfyUI 的模型 → 生成剧本 → 杀掉自己拉起的 LLM 进程 → 再让采样器跑。
+用之前确保 llama-server 在 8080 上活着（<code>ss -ltn | grep 8080</code>）。</div>
+<p>现成工作流：<code>ui/h3_w4a8_t2v_qwenscript_api_ui.json</code>。</p>
+
+<h3>6.2 缓存/加速节点在本机的状态表</h3>
+<table>
+<thead><tr><th>节点</th><th>状态</th><th>怎么用</th><th>禁忌</th></tr></thead>
+<tbody>
+<tr><td>MiniMax H3 TeaCache</td><td><span class="tag ok">已安装</span></td><td><code>rel_l1_thresh</code> 0.15（作者在 A100 上测到 −66%），start_step=2，end_step=-2，total_steps 要和采样步数一致</td><td>会改轨迹 → 不可复现；PDD 路线禁止叠加</td></tr>
+<tr><td>MiniMax H3 FirstBlockCache</td><td><span class="tag ok">已安装</span></td><td>mode 默认 <b>H3 Fast</b>（阈值 0.10，最多连命中 2 次）；要求保真用 H3 Safe</td><td>同上；<b>不要和别的缓存节点同时用</b></td></tr>
+<tr><td>MiniMax H3 Block Cache (T8)</td><td><span class="tag mid">已装但不推荐</span></td><td>官方手册结论：Turing 上默认参数 0 命中、纯开销</td><td>新手别用</td></tr>
+<tr><td>EasyCache（ComfyUI 自带）</td><td><span class="tag no">判死</span></td><td>短步数下语义崩坏</td><td>别用</td></tr>
+<tr><td>SageAttention</td><td><span class="tag no">不可用</span></td><td>sm_75 上 Triton 编译失败 / 管线崩溃</td><td>别用</td></tr>
+<tr><td>PDD Acc LoRA</td><td><span class="tag ok">推荐（画质档）</span></td><td>nfe 8</td><td>不要与 Turbo LoRA / 缓存节点叠加</td></tr>
+</tbody>
+</table>
+<div class="box info"><b>加速的正确顺序</b>：先换<b>配方</b>（PDD 8 步比 Turbo 4 步慢但画质好；Turbo 4 步最快）→ 再考虑<b>缓存</b>（省 30~45% 时间，但结果不可复现、轨迹会漂）。
+成片用可复现的组合，草稿用带缓存的组合。</div>
+
+<h3>6.3 时长不够 → 插帧（RIFE）</h3>
+<ul>
+<li>节点：ComfyUI 原生 <code>FrameInterpolate</code>；权重 <code>rife_v4.flownet.pkl</code>（24.6MB，HF <code>MonsterMMORPG/Practical-RIFE</code>）需自行下载到 <code>models/frame_interpolation/</code>（<b>本机目前是空的，未安装</b>）。</li>
+<li>实测：原生 362 帧 → 半帧 181 + RIFE 2x，时间 24.5 min → 13.0 min（−47%）；1/3 帧 121 + 3x → 7.5 min（−69%）。</li>
+<li><b>硬伤</b>：H3 的原生音轨长度跟帧数绑死，帧数减一半音轨就缩一半。插帧只救画面不救声音。</li>
+</ul>
+
+<h3>6.4 清晰度不够 → 低分辨率生成 + 超分</h3>
+<ul>
+<li>路线：640×352 生成（快）→ 抽帧 → <b>RTX VSR</b>（nvidia-vfx 轮子，Turing 可用，实测 ~47ms/帧）放大到 1080p → 合回视频。</li>
+<li>不要直接在工作流里把分辨率改到 1080p：每步时间会暴涨，显存也不够。</li>
+<li>本机 <code>upscale_models/</code> / <code>latent_upscale_models/</code> 都是空的 → ESRGAN 类图超分暂不可用；PDD 包自带的 <code>MiniMax H3 AV Latent Upscale By</code> 需要额外安装 <code>Comfyui_Minimax_h3_latent_Upscaler</code> 节点包和对应权重（未装）。</li>
+</ul>
+</section>
+
+<!-- ================= 7 ================= -->
+<section id="tune">
+<h2>7 · 调参速查表（按场景选参数）</h2>
+<table>
+<thead><tr><th>场景</th><th>分辨率</th><th>步数 / 采样</th><th>时长</th><th>预计耗时</th><th>要点</th></tr></thead>
+<tbody>
+<tr><td>先看一眼效果（草稿）</td><td>640×352</td><td>Turbo 4 步 + FirstBlockCache(H3 Fast)</td><td>124 帧</td><td>~100~180 s</td><td>不可复现，只看构图</td></tr>
+<tr><td>文生视频成片</td><td>640×352</td><td>Turbo 4 步（可 6 步）</td><td>124 帧</td><td>280~320 s</td><td>同 seed 可复现</td></tr>
+<tr><td>文生视频高画质</td><td>640×352（→后期 VSR 1080p）</td><td>PDD 8 步</td><td>124 帧</td><td>~600 s</td><td>禁止叠缓存/Turbo</td></tr>
+<tr><td>10 秒短片</td><td>640×352</td><td>Turbo 4 步</td><td>209 帧</td><td>~470 s</td><td>显存略紧，reserve-vram 仍用 2.5</td></tr>
+<tr><td>15 秒成片</td><td>640×352</td><td>Turbo 4 步</td><td>362 帧</td><td>~25 min</td><td>启动加 <code>--reserve-vram 4</code></td></tr>
+<tr><td>图生视频</td><td>640×352</td><td>Turbo 4 步</td><td>124 帧</td><td>395~417 s</td><td>首帧比例对齐画布</td></tr>
+<tr><td>文生图（单帧）</td><td>1024×1024</td><td>dpmpp_2m / karras / 30 步 / cfg 5</td><td>—</td><td>秒级</td><td>改构图只动 seed</td></tr>
+</tbody>
+</table>
+<div class="box tip"><b>三个不变原则</b>
+① 一次只改一个变量（其它不动），才有可比性；② seed 不动=可复现，动了=重新洗牌；③ 慢的先降分辨率和帧数，最后才降步数。
+</div>
+</section>
+
+<!-- ================= 8 ================= -->
+<section id="faq">
+<h2>8 · 故障排查</h2>
+<table>
+<thead><tr><th>现象</th><th>原因</th><th>处理</th></tr></thead>
+<tbody>
+<tr><td>节点红框 / 显示缺失节点</td><td>插件没装 / ComfyUI 版本太老</td><td>确认 <code>custom_nodes/</code> 下有 ComfyUI-MiniMax-H3-Turbo、ComfyUI-MiniMax-H3-PDD-Acc、ComfyUI-ClipProj、ComfyUI-QwenScript；ComfyUI ≥ 0.33.0</td></tr>
+<tr><td><code>Value not in list: ckpt_name ... not in []</code></td><td>模型没被扫到（路径映射或文件缺失）</td><td>看 <code>extra_model_paths.yaml</code> 的 base_path；确认 <code>/home/a/ai-work/models/checkpoints/</code> 有文件；<b>重启 ComfyUI</b></td></tr>
+<tr><td>CUDA out of memory</td><td>分辨率/帧数/批次太大，或别的进程占着显存</td><td>降 width/height、length、batch_size；关掉 4K 视频页面；先停本地 LLM；确认启动带 <code>--reserve-vram 2.5</code></td></tr>
+<tr><td>画面<b>彩色撕裂</b></td><td>用了 W4A4 权重</td><td>换 W4A8 mixed；本机只有 W4A8</td></tr>
+<tr><td>音频变形 / 被截断</td><td>采样器与步数不配套</td><td>Turbo：<code>res_multistep + simple + 4 步</code>；PDD：<code>euler</code> + 节点自带 sigmas，nfe 8/6/4</td></tr>
+<tr><td>PDD 节点报 "off-grid" / fail closed</td><td>采样器或步数不在训练网格</td><td>采样器必须 <code>euler</code>；nfe 只能是 8/6/4；shift 必须 12/3；<b>把 BasicScheduler 和 Turbo LoRA 拆掉</b></td></tr>
+<tr><td>PDD 报"主模型类型不匹配"</td><td>Ref2VA 的包配了 fl2va 主模型</td><td>换 <code>MiniMax-H3-FL2VA-Acc-8Step.safetensors</code></td></tr>
+<tr><td>跑着跑着黑屏 / 驱动复位（TDR）</td><td>显存被桌面占满</td><td>启动参数 <code>--reserve-vram 2.5</code>（长片 4）、<code>--vram-headroom 0.5</code></td></tr>
+<tr><td>界面能跑，提交 /prompt 却报错</td><td>前端导出的工作流含"子图"，API 层不认</td><td>直接用本机现成的 <code>workflows/api/</code> 或 <code>workflows/ui/</code> 里的工作流</td></tr>
+<tr><td>同一个 prompt 再点一次没反应</td><td>ComfyUI 按输入哈希去重</td><td>正常特性：改任何一个参数（哪怕换 seed）就会生成新任务</td></tr>
+<tr><td>怎么复现上次那条片</td><td>—</td><td>同 seed + <b>完全相同</b>的参数 + 同 ComfyUI 版本；加了缓存节点就不保证</td></tr>
+<tr><td>画面里出现奇怪的方形块 / 撕裂</td><td>混用了不兼容的量化底模</td><td>只用 <code>*_pruned_w4a8_mixed*</code></td></tr>
+<tr><td>局域网别人能访问我的 ComfyUI</td><td>默认 <code>--listen 0.0.0.0</code> 且无鉴权</td><td>改 <code>H3_LISTEN=127.0.0.1</code> 或 tailscale IP 重启</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ================= 9 ================= -->
+<section id="appendix">
+<h2>9 · 附录</h2>
+
+<h3>9.1 路径速查</h3>
+<table>
+<thead><tr><th>东西</th><th>路径</th></tr></thead>
+<tbody>
+<tr><td>ComfyUI 本体</td><td><code>/home/a/ai-work/ComfyUI</code></td></tr>
+<tr><td>模型总库</td><td><code>/home/a/ai-work/models</code>（由 <code>ComfyUI/extra_model_paths.yaml</code> 挂载）</td></tr>
+<tr><td>图片输出</td><td><code>/home/a/ai-work/ComfyUI/output/image/</code></td></tr>
+<tr><td>视频输出</td><td><code>/home/a/ai-work/ComfyUI/output/video/</code></td></tr>
+<tr><td>输入图片</td><td><code>/home/a/ai-work/ComfyUI/input/</code></td></tr>
+<tr><td>现成工作流</td><td><code>/home/a/ai-work/ComfyUI/user/default/workflows/</code>（<code>ui/</code> 可拖入界面，<code>api/</code> 供 curl，<code>_experiments/</code> 是加速对照实验，新手先别碰）</td></tr>
+<tr><td>服务日志</td><td><code>/home/a/ai-work/ComfyUI/h3_server.log</code></td></tr>
+<tr><td>启动脚本</td><td><code>/home/a/ai-work/minimax-h3-turing/scripts/h3_launch.local.sh</code></td></tr>
+<tr><td>H3 硬件/工作流手册（深度）</td><td><code>/home/a/ai-work/minimax-h3-turing/docs/</code>：01 硬件限制 · 04 社区经验 · 05 工作流与模型下载 · 08 T8/缓存 · 09 PDD · 10 基准数据全表</td></tr>
+<tr><td>Prompt 系统提示词（QwenScript 用）</td><td><code>/home/a/ai-work/qwen3.8-2080ti-256k/scripts/screenplay.system.md</code></td></tr>
+</tbody>
+</table>
+
+<h3>9.2 现成工作流清单</h3>
+<table>
+<thead><tr><th>文件（<code>workflows/</code> 下）</th><th>用途</th><th>路线</th></tr></thead>
+<tbody>
+<tr><td><code>ui/sdxl_juggernaut_t2i_api_ui.json</code></td><td>文生图（SDXL）</td><td>—</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_bypass2_api_ui.json</code></td><td><b>文生视频（推荐起点）</b> Turbo 4 步</td><td>Turbo</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_bypass_fbc6_api_ui.json</code></td><td>文生视频 + 缓存（草稿档，更快）</td><td>Turbo + cache</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_firstblockcache1_api_ui.json</code></td><td>文生视频 + FirstBlockCache（阈值 1.0）</td><td>Turbo + cache</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_pddacc8_api_ui.json</code></td><td><b>文生视频高画质</b> PDD 8 步</td><td>PDD</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_pddacc4_api_ui.json</code></td><td>文生视频 PDD 4 步（更快）</td><td>PDD</td></tr>
+<tr><td><code>ui/h3_w4a8_t2v_qwenscript_api_ui.json</code></td><td>文生视频 + 本地 LLM 写剧本</td><td>Turbo + QwenScript</td></tr>
+<tr><td><code>ui/h3_w4a8_i2v_bypass_api_ui.json</code></td><td><b>图生视频</b> Turbo 4 步（Load Image → first_frame）</td><td>Turbo</td></tr>
+<tr><td><code>ui/h3_w4a8_i2v_bypass_fbc6_api_ui.json</code></td><td>图生视频 + 缓存</td><td>Turbo + cache</td></tr>
+</tbody>
+</table>
+<p class="k">对应 <code>api/</code> 目录下同名文件是 <b>API 格式</b>（纯 JSON，可直接 curl），<code>ui/</code> 是 <b>界面格式</b>（拖进网页就能改）。
+<code>_experiments/</code> 下有 20+ 个加速对照实验（TeaCache / EasyCache / LarryVrh / T8 draft / PDD+T8 等），是给做性能对比用的，新手先别碰。</p>
+
+<h3>9.3 API 用法（可选）</h3>
+<p>提交一个工作流：</p>
+<pre><code>curl -s -X POST http://127.0.0.1:8188/prompt \
+  -H 'Content-Type: application/json' \
+  -d @workflow.json</code></pre>
+<p><code>api/</code> 目录里的文件里 <code>"__PROMPT__"</code> 是提示词占位符，<code>"__H3_FIRST_FRAME__"</code> 是首帧图片名（相对 <code>ComfyUI/input/</code>）。
+查队列：<code>curl -s http://127.0.0.1:8188/queue</code>；查历史：<code>curl -s http://127.0.0.1:8188/history</code>。</p>
+
+<h3>9.4 需要新模型时的下载入口</h3>
+<p>完整下载命令（HF 直链 / 国内镜像 / 文件落位）见 <code>/home/a/ai-work/minimax-h3-turing/docs/05-workflows.md</code>；
+本机模型目录是 <code>/home/a/ai-work/models</code>，落位后<b>重启 ComfyUI</b>即可在节点下拉框里看到。</p>
+</section>
+
+<footer>ComfyUI 使用手册 · RTX 2080 Ti 22G / ComfyUI 0.33.1 · 数据来源：本机实测日志 + <code>minimax-h3-turing/docs/10-benchmarks.md</code>（本机同款卡，2026-09 实测）</footer>
+</main>
+</div>
+</body>
+</html>

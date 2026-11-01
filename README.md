@@ -9,6 +9,7 @@
 | `model-eval/` | 标准化能力测评工具（自建 180 题回归套件 + lm-evaluation-harness 标准基准流程）；只依赖 OpenAI 兼容端点，换模型/端点只改 `config.toml` |
 | `docs/runtime-research.zh-CN.md` | **运行时调研汇总**：设备与网络现实、5 个运行时候选对照、模型/量化权重地板、四轴"突破资源上限"、本机实测数据、三车道与三档结论、未验证清单 |
 | `docs/三运行时对比结论.md` | **单页选型入口**：llama.cpp / NInfer / vLLM 三方总表、四条结论、选型建议、三个必须记住的限制、数据来源标注 |
+| `docs/ComfyUI-使用手册.html` | **ComfyUI 新手手册（HTML）**：本机 2080Ti 22G 上的文生图 / 文生视频 / 图生视频 / 进阶玩法——节点清单、连线、参数调控、耗时预期、故障排查 |
 | `.workbuddy/memory/` | 逐日工作记忆（MEMORY.md 为索引） |
 
 ## 结论速查（详见 `docs/runtime-research.zh-CN.md`）
