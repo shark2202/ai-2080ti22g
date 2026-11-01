@@ -25,4 +25,5 @@
 - 27B：Q4_K_M ≈16.5GB（推荐，余量给 KV cache 与视觉投影器）、Q5_K_M ≈19.8GB（上下文需控制到 4K-8K）；Q6_K ≈22GB 基本无余量
 - 预期速度：Q4 单流约 15-30 tok/s；全量 180 题约 30-60 分钟，可 --resume 中断续跑
 - [2026-10-21](2026-10-21.md) — 汇总 2080 Ti 22GB 运行时调研（运行时对照 / 权重地板 / 四轴融合 / 实测数据 / 未验证清单）
+- [2026-11-01](2026-11-01.md) — ComfyUI 新手手册（`docs/ComfyUI-使用手册.html`：文生图/文生视频/图生视频/进阶/调参/排障）+ 工作方式约定（主动 commit/pull/push，有风险先问）
   - 注：16.5GB 的 Q4_K_M 是 **GGUF / llama.cpp** 口径；vLLM 读不了该文件（GGUF 路径缺 qwen3_5/hybrid 实现），且 vLLM 支持的量化地板为 18.60GB（RedHatAI INT4）→ 27B 在 vLLM 单卡不可用。详见 `docs/runtime-research.zh-CN.md` §三。
