@@ -10,6 +10,7 @@
 | `docs/runtime-research.zh-CN.md` | **运行时调研汇总**：设备与网络现实、5 个运行时候选对照、模型/量化权重地板、四轴"突破资源上限"、本机实测数据、三车道与三档结论、未验证清单 |
 | `docs/三运行时对比结论.md` | **单页选型入口**：llama.cpp / NInfer / vLLM 三方总表、四条结论、选型建议、三个必须记住的限制、数据来源标注 |
 | `docs/ComfyUI-使用手册.html` | **ComfyUI 新手手册（HTML）**：本机 2080Ti 22G 上的文生图 / 文生视频 / 图生视频 / 进阶玩法——节点清单、连线、参数调控、耗时预期、故障排查 |
+| `docs/serve.sh` | 一键静态服务：`bash docs/serve.sh` → `http://<本机IP>:8090/`（手册在 `/ComfyUI-使用手册.html`）；`PORT=`/`BIND=` 可覆盖 |
 | `.workbuddy/memory/` | 逐日工作记忆（MEMORY.md 为索引） |
 
 ## 结论速查（详见 `docs/runtime-research.zh-CN.md`）
