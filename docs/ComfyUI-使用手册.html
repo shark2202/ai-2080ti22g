@@ -71,6 +71,7 @@
   <a href="#terms">1 · 术语速查</a>
   <a href="#models">2 · 本机模型清单</a>
   <a href="#t2i">3 · 场景一：文生图</a>
+  <a href="#t2iz">3b · 中文出图（Z-Image）</a>
   <a href="#t2v">4 · 场景二：文生视频</a>
   <a href="#i2v">5 · 场景三：图生视频</a>
   <a href="#extra">6 · 场景四：进阶玩法</a>
@@ -110,12 +111,12 @@
 <p>浏览器打开：<b>http://127.0.0.1:8188</b>（局域网机器用 <code>http://&lt;本机IP&gt;:8188</code>）。
 日志在 <code>/home/a/ai-work/ComfyUI/h3_server.log</code>。</p>
 
-<h3>0.2 跑通第一个文生图</h3>
+<h3>0.2 跑通第一个文生图（中文）</h3>
 <ol>
-<li>左侧工作流面板点 <b>Workflow → 打开</b>，选 <code>/home/a/ai-work/ComfyUI/user/default/workflows/ui/sdxl_juggernaut_t2i_api_ui.json</code>（也可以直接把文件拖进网页）。</li>
-<li>找到 <b>CLIP Text Encode（正）</b> 节点，把 text 改成你想要的描述，例如 <code>一只橘猫坐在窗台上，午后阳光，胶片质感，浅景深</code>。</li>
+<li>左侧工作流面板点 <b>Workflow → 打开</b>，选 <code>/home/a/ai-work/ComfyUI/user/default/workflows/ui/zimage_turbo_t2i_api_ui.json</code>（也可以直接把文件拖进网页）。</li>
+<li>找到 <b>CLIP Text Encode</b> 节点，把 text 改成你想要的描述——<b>中文直接写</b>，例如 <code>一位穿红色汉服的年轻女性站在竹林小径上，逆光，中国风</code>。</li>
 <li>点右上角 <b>Queue Prompt</b>（排队执行）。</li>
-<li>右侧「队列」或 <code>output/image/</code> 目录里出 PNG。</li>
+<li>右侧「队列」或 <code>output/image/</code> 目录里出 PNG（<b>约 8 秒</b>）。</li>
 </ol>
 <div class="box info"><b>新手记住三件事</b>
 <ul>
@@ -123,6 +124,8 @@
 <li><b>seed</b>＝随机数。同一张图想再要一次"一模一样的"，就把 seed 设成 <code>fixed</code>；想换构图就点骰子换数字。</li>
 <li>输出永远在磁盘上：图片 <code>ComfyUI/output/image/</code>，视频 <code>ComfyUI/output/video/</code>。</li>
 </ul></div>
+<div class="box tip"><b>想要英文写实风</b>？用 <code>ui/sdxl_juggernaut_t2i_api_ui.json</code>（SDXL，30 步约 18 秒）——
+但它的 CLIP <b>只认英文</b>，中文提示词基本不出效果。<b>中文一律用 Z-Image</b>（见 §3b）。</div>
 </section>
 
 <!-- ================= 1 ================= -->
@@ -153,7 +156,11 @@
 <table>
 <thead><tr><th>用途</th><th>文件</th><th>大小/位置</th><th>说明</th></tr></thead>
 <tbody>
-<tr><td><b>文生图</b></td><td><code>Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors</code></td><td>models/checkpoints/</td><td>SDXL 写实/摄影风大模型。本机<b>唯一的出图模型</b>（自带 VAE+CLIP，一个 checkpoint 全包）。</td></tr>
+<tr><td><b>出图（英文）</b></td><td><code>Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors</code></td><td>models/checkpoints/</td><td>SDXL 写实/摄影风大模型（自带 VAE+CLIP，一个 checkpoint 全包）。<b>只认英文提示词</b>，中文基本不认——中文出图请用下面的 Z-Image。</td></tr>
+<tr><td><b>出图（中文）</b></td><td><code>z_image_turbo_int8_convrot.safetensors</code></td><td>models/diffusion_models/</td><td><b>Z-Image-Turbo 中文出图主模型</b>（6.2GB，int8 存储 + fp16 计算，Turing 卡唯一稳妥形态）。8 步出图，比 SDXL 的 30 步快一个量级。</td></tr>
+<tr><td>中文文本编码器</td><td><code>qwen_3_4b_fp8_mixed.safetensors</code></td><td>models/text_encoders/</td><td>Qwen3-4B，<b>Z-Image 的中文能力来源</b>（不是给 H3 用的那个 qwen3vl_4b）。</td></tr>
+<tr><td>出图 VAE</td><td><code>ae.safetensors</code></td><td>models/vae/</td><td>Z-Image 的 latent ↔ 像素。</td></tr>
+<tr><td>出图 ControlNet</td><td><code>Z-Image-Turbo-Fun-Controlnet-Union.safetensors</code></td><td>ComfyUI/models/model_patches/</td><td>Union 版，一份权重支持 canny / depth / pose / hed / mlsd——<b>漫剧分镜控姿态就靠它</b>。</td></tr>
 <tr><td><b>视频主模型</b></td><td><code>minimax_h3_fl2va_pruned_w4a8_mixed_ax1y2jp.safetensors</code></td><td>models/diffusion_models/（另有同款不带后缀的）</td><td>MiniMax-H3 视频 DiT，<b>W4A8 量化</b>（Turing 卡唯一可用形态）。<code>ax1y2jp</code> 与非后缀版差 26KB，实测输出一致。</td></tr>
 <tr><td>文本编码器</td><td><code>qwen3vl_4b_int4_convrot.safetensors</code>（另有 <code>_fp8_scaled</code>）</td><td>models/text_encoders/</td><td>Qwen3-VL 4B，负责把提示词/首帧图读成条件。</td></tr>
 <tr><td>投影矩阵</td><td><code>mmh3-4b-ClipProj-celeb-mlp.safetensors</code></td><td>models/clip_projections/</td><td>把 4B 编码结果投到 H3 需要的空间。</td></tr>
@@ -242,7 +249,112 @@
 </tbody>
 </table>
 <div class="box info"><b>文生图的产线位置：</b>它的三个出口分别是 ①当参考图给<b>图生视频</b>当首帧 ②当分镜草图 ③当缩略图/封面。
-本机没有 ControlNet、没有放大模型（<code>upscale_models/</code> 是空的），所以"精准控姿态/高清放大"暂时做不了，别在这上面耗时间。</div>
+本机<b>没有 SDXL 的 ControlNet、没有放大模型</b>（<code>upscale_models/</code> 是空的），所以 SDXL 这条线上"精准控姿态/高清放大"暂时做不了，别在这上面耗时间——<b>这两件事走 §3b 的 Z-Image</b>（它带 ControlNet Union）。</div>
+</section>
+
+
+<!-- ================= 3b ================= -->
+<section id="t2iz">
+<h2>3b · 场景一续：中文出图（Z-Image-Turbo）</h2>
+<p class="sub">上一节的 SDXL <b>只认英文</b>。短视频/漫剧剧本是中文的，用它等于每张图先翻译一遍。
+Z-Image-Turbo 的文本编码器是 <b>Qwen3-4B</b>，<b>中文直接写</b>，而且 8 步出图、1024×1024 只要 <b>8 秒</b>。</p>
+
+<div class="box tip"><b>先记住三件事</b>
+① <b>中文出图走 Z-Image，英文写实走 SDXL</b>，两条线不冲突，节点不通用。
+② Turbo 是蒸馏档：<b>steps=8、cfg=1.0、不要写负面提示词</b>（负向用 <code>ConditioningZeroOut</code> 置零）。
+③ 出图想给视频用，直接出 <b>16:9（1024×576）</b>，H3 吃 640×352，比例对得上。</div>
+
+<h3>3b.1 节点（9 个，比 SDXL 多两个加载器）</h3>
+<div class="flow">
+<span class="n">① UNETLoader</span><span class="ar">→</span>
+<span class="n">⑤ ModelSamplingAuraFlow</span><span class="ar">→</span>
+<span class="n">⑧ KSampler</span><span class="ar">→</span>
+<span class="n">⑨ VAE Decode</span><span class="ar">→</span>
+<span class="n">⑩ Save Image</span>
+</div>
+<div class="flow">
+<span class="n">② CLIPLoader</span><span class="ar">→</span>
+<span class="n">⑥ CLIP Text Encode</span><span class="ar">→</span><span class="n">⑧ KSampler</span>
+<span class="n">⑦ ConditioningZeroOut</span><span class="ar">→</span><span class="n">⑧ KSampler</span>
+</div>
+<table>
+<thead><tr><th>#</th><th>节点（界面名）</th><th>接什么</th><th>作用</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><b>Load Diffusion Model</b></td><td><code>unet_name</code> = <code>z_image_turbo_int8_convrot.safetensors</code></td><td>出图主模型（Z-Image-Turbo，int8 权重）。</td></tr>
+<tr><td>②</td><td><b>Load CLIP</b></td><td><code>clip_name</code> = <code>qwen_3_4b_fp8_mixed.safetensors</code>，<code>type</code> = <code>lumina2</code></td><td>中文文本编码器（Qwen3-4B）。</td></tr>
+<tr><td>③</td><td><b>Load VAE</b></td><td><code>vae_name</code> = <code>ae.safetensors</code></td><td>Z-Image 的 VAE。</td></tr>
+<tr><td>④⑤</td><td>ModelSamplingAuraFlow</td><td>model ← ①，<code>shift</code> = <b>3.0</b></td><td>官方指定的采样缩放，<b>别改</b>。</td></tr>
+<tr><td>⑥</td><td>CLIP Text Encode（正）</td><td>clip ← ②，<b>text 写中文</b></td><td>正向条件。</td></tr>
+<tr><td>⑦</td><td>ConditioningZeroOut</td><td>conditioning ← ⑥</td><td>负向置零（Turbo 蒸馏档<b>不要</b>自己写负面提示词）。</td></tr>
+<tr><td>⑧</td><td>KSampler</td><td>model ← ⑤，positive ← ⑥，negative ← ⑦，latent ← ⑦EmptyLatentImage</td><td>主采样器。</td></tr>
+<tr><td>⑨⑩</td><td>VAE Decode → Save Image</td><td>vae ← ③</td><td>解码存 PNG 到 <code>output/image/</code>。</td></tr>
+</tbody>
+</table>
+
+<h3>3b.2 默认参数</h3>
+<table>
+<thead><tr><th>节点</th><th>参数</th><th>默认值</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td>EmptySD3LatentImage</td><td>width / height</td><td><b>1024×1024</b>（短视频用 1024×576）</td><td>Z-Image 原生分辨率；别的比例也能出，别用怪尺寸。</td></tr>
+<tr><td>EmptySD3LatentImage</td><td>batch_size</td><td>1</td><td>显存 ×N，要 4 张就填 4。</td></tr>
+<tr><td>KSampler</td><td>steps</td><td><b>8</b></td><td>Turbo 蒸馏档，8 步就是设计值，加到 20 反而不如 8 步干净。</td></tr>
+<tr><td>KSampler</td><td>cfg</td><td><b>1.0</b></td><td>Turbo 蒸馏过，cfg&gt;1 会过饱和。负向一律置零。</td></tr>
+<tr><td>KSampler</td><td>sampler / scheduler</td><td><code>res_multistep</code> / <code>simple</code></td><td>官方配套，别乱换。</td></tr>
+<tr><td>KSampler</td><td>denoise</td><td>1.0</td><td>文生图就是从零画。</td></tr>
+<tr><td>KSampler</td><td>seed</td><td>3013（fixed）</td><td>同 seed 同提示词 = 同一张图；点骰子换构图。</td></tr>
+</tbody>
+</table>
+
+<h3>3b.3 提示词怎么写（中文）</h3>
+<p>公式和 SDXL 一样：<b>主体 + 细节 + 风格 + 镜头/光线 + 质量词</b>，逗号分隔，越靠前权重越高。
+<b>中文直接写，不用翻译</b>——实测"一只橘猫坐在木质窗台，午后侧逆光，毛发细节清晰，85mm 镜头浅景深，写实摄影"
+出来的东西：橘猫、木质窗台、侧逆光、85mm 浅景深<b>全部命中</b>。</p>
+
+<h3>3b.4 图生图：同一角色换分镜（漫剧核心）</h3>
+<p>把 ③ 换成 <b>Load Image → VAE Encode</b> 顶替 EmptySD3LatentImage，<code>denoise</code> 调低，
+就得到"保留角色、改姿势/换气氛"的图。<b>denoise 是"改多少"旋钮</b>：</p>
+<table>
+<thead><tr><th>denoise</th><th>效果</th><th>用在哪</th></tr></thead>
+<tbody>
+<tr><td>0.55</td><td>几乎只改光照，角色和构图全锁死</td><td>同一张图换色调</td></tr>
+<tr><td><b>0.6~0.75</b></td><td>保留角色身份，换动作/气氛</td><td><b>漫剧多分镜就用这档</b></td></tr>
+<tr><td>0.9</td><td>基本重画</td><td>只借个大致色调</td></tr>
+</tbody>
+</table>
+<div class="box tip"><b>漫剧实测</b>：先出 1 张角色定妆照 → 当参考图 → 分别喂
+"低头看竹简""抬眼望向镜头外""转身走向竹林深处"三条提示词，denoise 0.7、换 seed，
+出来的三张<b>红汉服、发饰、竹林背景完全一致</b>，只有动作和表情在变。</div>
+
+<h3>3b.5 ControlNet：精准控构图</h3>
+<p>接 <b>Load Model Patch</b>（选 <code>Z-Image-Turbo-Fun-Controlnet-Union.safetensors</code>）
+→ <b>Apply Z-Image Fun ControlNet</b>（model ← ⑤，model_patch ← 补丁，vae ← ③，image ← 参考图），
+再把这个节点的 model 接到 KSampler。Union 一份权重支持 canny / depth / pose / hed / mlsd，
+用界面里的 <code>Detect Edges (Canny)</code> 之类预处理节点出控制图即可。</p>
+
+<h3>3b.6 耗时（本机 2080Ti 22G 实测）</h3>
+<table>
+<thead><tr><th>任务</th><th>分辨率</th><th>耗时</th></tr></thead>
+<tbody>
+<tr><td>文生图</td><td>1024×1024</td><td><b>8.3s</b></td></tr>
+<tr><td>文生图</td><td>1024×576（16:9）</td><td><b>6.0s</b></td></tr>
+<tr><td>文生图</td><td>1216×704 / 832×1216</td><td>8.0s</td></tr>
+<tr><td>图生图</td><td>1024×1024，denoise 0.55~0.75</td><td>8~18s</td></tr>
+<tr><td>ControlNet</td><td>1024×1024</td><td>12.3s</td></tr>
+</tbody>
+</table>
+<p class="k">对比 SDXL 的 18s/张（30 步）：Z-Image 更快，而且中文直接可用。</p>
+
+<h3>3b.7 端到端：中文出图 → 图生视频（短视频主链路）</h3>
+<pre><code>python3 /home/a/ai-work/minimax-h3-turing/scripts/zimage_to_h3.py \
+  --prompt "一位穿红色汉服的年轻女性站在竹林小径上，逆光，中国风，水墨电影感" \
+  --h3-prompt "女性缓缓转身，衣袖随风飘动，竹叶沙沙作响，镜头轻微推近"</code></pre>
+<p>实测：出图 <b>8.3s</b> → H3 图生视频 <b>258.6s</b> → 成片
+<code>ComfyUI/output/video/H3Lite_*.mp4</code>（640×352 / 24fps / 5.17s / H.264 + <b>带音轨</b>）。</p>
+
+<div class="box warn"><b>两条出图线的选择</b><br>
+<b>中文 / 漫剧 / 短视频 → Z-Image</b>（本节）：中文直出、8 秒、图生图保角色、有 ControlNet。<br>
+<b>英文写实封面 / 老素材 → SDXL</b>（§3）：模型自带 VAE+CLIP 一个 checkpoint 全包，30 步但更稳，英文提示词表现细腻。<br>
+<span class="k">别混用节点：SDXL 的 checkpoint 不能直接喂 Z-Image 的 UNETLoader，反之亦然。</span></div>
 </section>
 
 <!-- ================= 4 ================= -->
@@ -475,7 +587,10 @@ PDD 路线<b>禁止</b>再挂 Turbo LoRA，也<b>禁止</b>再叠任何缓存节
 <tr><td>10 秒短片</td><td>640×352</td><td>Turbo 4 步</td><td>209 帧</td><td>~470 s</td><td>显存略紧，reserve-vram 仍用 2.5</td></tr>
 <tr><td>15 秒成片</td><td>640×352</td><td>Turbo 4 步</td><td>362 帧</td><td>~25 min</td><td>启动加 <code>--reserve-vram 4</code></td></tr>
 <tr><td>图生视频</td><td>640×352</td><td>Turbo 4 步</td><td>124 帧</td><td>395~417 s</td><td>首帧比例对齐画布</td></tr>
-<tr><td>文生图（单帧）</td><td>1024×1024</td><td>dpmpp_2m / karras / 30 步 / cfg 5</td><td>—</td><td>秒级</td><td>改构图只动 seed</td></tr>
+<tr><td><b>中文文生图（推荐）</b></td><td>1024×1024</td><td>Z-Image-Turbo：res_multistep / simple / <b>8 步 / cfg 1.0</b></td><td>—</td><td><b>8.3 s</b></td><td>中文直接写；负向置零</td></tr>
+<tr><td><b>中文 16:9 分镜（给视频用）</b></td><td>1024×576</td><td>同上</td><td>—</td><td><b>6.0 s</b></td><td>比例与 640×352 对得上</td></tr>
+<tr><td><b>中文图生图（保角色）</b></td><td>1024×1024</td><td>同上 + denoise 0.6~0.75</td><td>—</td><td>8~18 s</td><td>漫剧多分镜用这档</td></tr>
+<tr><td>文生图（英文写实）</td><td>1024×1024</td><td>dpmpp_2m / karras / 30 步 / cfg 5</td><td>—</td><td>秒级</td><td>SDXL，<b>只认英文</b></td></tr>
 </tbody>
 </table>
 <div class="box tip"><b>三个不变原则</b>
@@ -502,6 +617,12 @@ PDD 路线<b>禁止</b>再挂 Turbo LoRA，也<b>禁止</b>再叠任何缓存节
 <tr><td>怎么复现上次那条片</td><td>—</td><td>同 seed + <b>完全相同</b>的参数 + 同 ComfyUI 版本；加了缓存节点就不保证</td></tr>
 <tr><td>画面里出现奇怪的方形块 / 撕裂</td><td>混用了不兼容的量化底模</td><td>只用 <code>*_pruned_w4a8_mixed*</code></td></tr>
 <tr><td>局域网别人能访问我的 ComfyUI</td><td>默认 <code>--listen 0.0.0.0</code> 且无鉴权</td><td>改 <code>H3_LISTEN=127.0.0.1</code> 或 tailscale IP 重启</td></tr>
+<tr><td>中文提示词出图"没按写的来" / 出图是英文内容</td><td>用了 SDXL 那条线（它的 CLIP 只认英文）</td><td>换 Z-Image 工作流（<code>zimage_turbo_t2i_api.json</code>）；SDXL 必须写英文</td></tr>
+<tr><td>Z-Image 出图过饱和 / 边缘假</td><td>cfg 调高了（Turbo 蒸馏档 cfg 必须是 1.0）</td><td>cfg 改回 <b>1.0</b>，负向用 <code>ConditioningZeroOut</code> 置零，别自己写负面提示词</td></tr>
+<tr><td>Z-Image 加载报错 / 加载后特别慢</td><td>加载了 bf16 版权重，或没走 int8-convrot</td><td>只认 <code>z_image_turbo_int8_convrot.safetensors</code>；日志里应看到 <code>model weight dtype torch.float16</code>（Turing 的 bf16 是模拟的，慢 7 倍）</td></tr>
+<tr><td>图生图改了半天没变化</td><td>denoise 太低</td><td>denoise 调到 0.6~0.75（0.55 基本只改光照）</td></tr>
+<tr><td>图生图角色变了 / 认不出来了</td><td>denoise 太高</td><td>denoise 降到 0.6 以下，或换更好的参考图（正脸、清晰）</td></tr>
+<tr><td>Z-Image 节点在下拉框里看不到</td><td>模型没被扫到</td><td>确认 <code>models/diffusion_models/</code>、<code>models/text_encoders/</code>、<code>models/vae/</code> 有文件；ControlNet 补丁在 <code>ComfyUI/models/model_patches/</code>；<b>重启 ComfyUI</b></td></tr>
 </tbody>
 </table>
 </section>
@@ -531,7 +652,10 @@ PDD 路线<b>禁止</b>再挂 Turbo LoRA，也<b>禁止</b>再叠任何缓存节
 <table>
 <thead><tr><th>文件（<code>workflows/</code> 下）</th><th>用途</th><th>路线</th></tr></thead>
 <tbody>
-<tr><td><code>ui/sdxl_juggernaut_t2i_api_ui.json</code></td><td>文生图（SDXL）</td><td>—</td></tr>
+<tr><td><code>ui/zimage_turbo_t2i_api_ui.json</code></td><td><b>中文文生图（Z-Image-Turbo，8 步 8 秒）</b></td><td>Z-Image</td></tr>
+<tr><td><code>ui/zimage_turbo_i2i_api_ui.json</code></td><td><b>中文图生图</b>（保角色换分镜，漫剧用）</td><td>Z-Image</td></tr>
+<tr><td><code>ui/zimage_turbo_cn_api_ui.json</code></td><td>中文出图 + ControlNet（canny/depth/pose 控构图）</td><td>Z-Image + CN</td></tr>
+<tr><td><code>ui/sdxl_juggernaut_t2i_api_ui.json</code></td><td>文生图（SDXL，<b>只认英文</b>）</td><td>—</td></tr>
 <tr><td><code>ui/h3_w4a8_t2v_bypass2_api_ui.json</code></td><td><b>文生视频（推荐起点）</b> Turbo 4 步</td><td>Turbo</td></tr>
 <tr><td><code>ui/h3_w4a8_t2v_bypass_fbc6_api_ui.json</code></td><td>文生视频 + 缓存（草稿档，更快）</td><td>Turbo + cache</td></tr>
 <tr><td><code>ui/h3_w4a8_t2v_firstblockcache1_api_ui.json</code></td><td>文生视频 + FirstBlockCache（阈值 1.0）</td><td>Turbo + cache</td></tr>
@@ -550,12 +674,23 @@ PDD 路线<b>禁止</b>再挂 Turbo LoRA，也<b>禁止</b>再叠任何缓存节
 <pre><code>curl -s -X POST http://127.0.0.1:8188/prompt \
   -H 'Content-Type: application/json' \
   -d @workflow.json</code></pre>
-<p><code>api/</code> 目录里的文件里 <code>"__PROMPT__"</code> 是提示词占位符，<code>"__H3_FIRST_FRAME__"</code> 是首帧图片名（相对 <code>ComfyUI/input/</code>）。
+<p><code>api/</code> 目录里的文件里 <code>"__PROMPT__"</code> 是提示词占位符，<code>"__H3_FIRST_FRAME__"</code> 是首帧图片名（相对 <code>ComfyUI/input/</code>），<code>"__IMAGE__"</code> 是图生图的输入图名。
 查队列：<code>curl -s http://127.0.0.1:8188/queue</code>；查历史：<code>curl -s http://127.0.0.1:8188/history</code>。</p>
+<p>不想手工 curl 的话，仓库自带跑图脚本（<code>/home/a/ai-work/minimax-h3-turing/scripts/</code>）：</p>
+<pre><code># 跑任意工作流（--prompt / --image / --seed 覆盖占位符）
+python3 scripts/run_workflow.py workflows/api/zimage_turbo_t2i_api.json \
+  --prompt "一位穿红色汉服的年轻女性站在竹林小径上"
+
+# 中文出图 → H3 图生视频，一步到位
+python3 scripts/zimage_to_h3.py --prompt "..." --h3-prompt "..."</code></pre>
 
 <h3>9.4 需要新模型时的下载入口</h3>
 <p>完整下载命令（HF 直链 / 国内镜像 / 文件落位）见 <code>/home/a/ai-work/minimax-h3-turing/docs/05-workflows.md</code>；
 本机模型目录是 <code>/home/a/ai-work/models</code>，落位后<b>重启 ComfyUI</b>即可在节点下拉框里看到。</p>
+<p><b>Z-Image 四件套（中文出图）</b>：一键脚本 <code>bash /home/a/ai-work/models/download_zimage.sh</code>。
+下载源<b>优先 ModelScope</b>（<code>Comfy-Org/Z-Image-Turbo</code> 有镜像，CDN 路径内容寻址可交叉核对 sha256，实测比 hf-mirror 快一个数量级）；
+ControlNet 补丁（<code>alibaba-pai/…</code>）ModelScope 上没有，只能走 hf-mirror。
+每个文件都带 sha256 校验，不匹配不落位。</p>
 </section>
 
 <footer>ComfyUI 使用手册 · RTX 2080 Ti 22G / ComfyUI 0.33.1 · 数据来源：本机实测日志 + <code>minimax-h3-turing/docs/10-benchmarks.md</code>（本机同款卡，2026-09 实测）</footer>
