@@ -343,6 +343,9 @@ Z-Image-Turbo 的文本编码器是 <b>Qwen3-4B</b>，<b>中文直接写</b>，�
 </tbody>
 </table>
 <p class="k">对比 SDXL 的 18s/张（30 步）：Z-Image 更快，而且中文直接可用。</p>
+<div class="box warn"><b>⚠️ 上面的耗时是"模型已在显存里"的热态数字</b>：刚重启 ComfyUI、或刚跑完一段 H3 视频
+（视频模型把出图模型挤出了显存）之后，<b>第一张要 14~36 秒</b>（要把权重重新读进显存），第二张起才回到 8 秒档。
+出图和视频交替跑时，每张图都要重载 → <b>按每次约 30 秒估算</b>，别拿 8 秒去算产线节拍。</div>
 
 <h3>3b.7 端到端：中文出图 → 图生视频（短视频主链路）</h3>
 <pre><code>python3 /home/a/ai-work/minimax-h3-turing/scripts/zimage_to_h3.py \
