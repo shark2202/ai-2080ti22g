@@ -26,4 +26,5 @@
 - 预期速度：Q4 单流约 15-30 tok/s；全量 180 题约 30-60 分钟，可 --resume 中断续跑
 - [2026-10-21](2026-10-21.md) — 汇总 2080 Ti 22GB 运行时调研（运行时对照 / 权重地板 / 四轴融合 / 实测数据 / 未验证清单）
 - [2026-11-01](2026-11-01.md) — ComfyUI 新手手册（`docs/ComfyUI-使用手册.html`：文生图/文生视频/图生视频/进阶/调参/排障）+ 工作方式约定（主动 commit/pull/push，有风险先问）
+- [2026-11-02](2026-11-02.md) — **中文出图路线**：Z-Image-Turbo（Qwen3-4B 文本编码器，中文原生）替代只认英文的 SDXL；int8-convrot + fp16 是 sm_75 唯一稳妥形态（Turing 的 bf16 是模拟的，慢 7 倍）；文生图 8.3s / 16:9 6.0s；图生图 denoise 0.6~0.75 保角色（漫剧多分镜）；带 ControlNet Union 控姿态；中文出图 → H3 图生视频端到端 8.3s+258.6s。手册新增 §3b
   - 注：16.5GB 的 Q4_K_M 是 **GGUF / llama.cpp** 口径；vLLM 读不了该文件（GGUF 路径缺 qwen3_5/hybrid 实现），且 vLLM 支持的量化地板为 18.60GB（RedHatAI INT4）→ 27B 在 vLLM 单卡不可用。详见 `docs/runtime-research.zh-CN.md` §三。
